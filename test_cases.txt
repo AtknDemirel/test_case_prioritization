@@ -1,0 +1,3059 @@
+[
+  {
+    "file_path": "tests/test_appctx.py",
+    "test_name": "test_basic_url_generation",
+    "summary": "Verifies that url_for generates correct HTTPS URLs within an application context when SERVER_NAME and PREFERRED_URL_SCHEME are configured.",
+    "steps": [
+      "Arrange: Configure SERVER_NAME and PREFERRED_URL_SCHEME on the app.",
+      "Arrange: Define a simple route '/' named 'index'.",
+      "Arrange: Push an application context.",
+      "Act: Call flask.url_for('index').",
+      "Assert: Confirm the generated URL is 'https://localhost/'."
+    ],
+    "notes": [
+      "Uses the 'app' fixture.",
+      "Requires an application context."
+    ]
+  },
+  {
+    "file_path": "tests/test_appctx.py",
+    "test_name": "test_url_generation_requires_server_name",
+    "summary": "Verifies that url_for raises a RuntimeError when called within an application context if SERVER_NAME is not configured.",
+    "steps": [
+      "Arrange: Push an application context without setting SERVER_NAME.",
+      "Act: Call flask.url_for('index').",
+      "Assert: Confirm that a RuntimeError is raised."
+    ],
+    "notes": [
+      "Uses the 'app' fixture.",
+      "Requires an application context."
+    ]
+  },
+  {
+    "file_path": "tests/test_appctx.py",
+    "test_name": "test_url_generation_without_context_fails",
+    "summary": "Verifies that url_for raises a RuntimeError when called outside of an application context.",
+    "steps": [
+      "Act: Call flask.url_for('index') outside of any context.",
+      "Assert: Confirm that a RuntimeError is raised."
+    ],
+    "notes": []
+  },
+  {
+    "file_path": "tests/test_appctx.py",
+    "test_name": "test_request_context_means_app_context",
+    "summary": "Verifies that pushing a request context also makes the application context available via current_app.",
+    "steps": [
+      "Arrange: Push a test request context.",
+      "Act: Access flask.current_app.",
+      "Assert: Confirm flask.current_app points to the correct app instance.",
+      "Act: Pop the request context.",
+      "Assert: Confirm flask.current_app raises a RuntimeError (is unbound)."
+    ],
+    "notes": [
+      "Uses the 'app' fixture."
+    ]
+  },
+  {
+    "file_path": "tests/test_appctx.py",
+    "test_name": "test_app_context_provides_current_app",
+    "summary": "Verifies that pushing an application context makes it available via current_app.",
+    "steps": [
+      "Arrange: Push an application context.",
+      "Act: Access flask.current_app.",
+      "Assert: Confirm flask.current_app points to the correct app instance.",
+      "Act: Pop the application context.",
+      "Assert: Confirm flask.current_app raises a RuntimeError (is unbound)."
+    ],
+    "notes": [
+      "Uses the 'app' fixture."
+    ]
+  },
+  {
+    "file_path": "tests/test_appctx.py",
+    "test_name": "test_app_tearing_down",
+    "summary": "Verifies that teardown_appcontext functions are called with None when the application context is popped cleanly.",
+    "steps": [
+      "Arrange: Define a teardown_appcontext function that appends the received exception to a list.",
+      "Arrange: Push and pop an application context using a 'with' block.",
+      "Act: Check the list populated by the teardown function.",
+      "Assert: Confirm the list contains only None."
+    ],
+    "notes": [
+      "Uses the 'app' fixture.",
+      "Demonstrates teardown handler registration and execution."
+    ]
+  },
+  {
+    "file_path": "tests/test_appctx.py",
+    "test_name": "test_app_tearing_down_with_previous_exception",
+    "summary": "Verifies that teardown_appcontext functions are called with None even if an unrelated exception occurred before the context was pushed.",
+    "steps": [
+      "Arrange: Define a teardown_appcontext function that appends the received exception to a list.",
+      "Arrange: Raise and catch an exception outside the context.",
+      "Arrange: Push and pop an application context using a 'with' block.",
+      "Act: Check the list populated by the teardown function.",
+      "Assert: Confirm the list contains only None."
+    ],
+    "notes": [
+      "Uses the 'app' fixture."
+    ]
+  },
+  {
+    "file_path": "tests/test_appctx.py",
+    "test_name": "test_app_tearing_down_with_handled_exception_by_except_block",
+    "summary": "Verifies that teardown_appcontext functions are called with None if an exception is raised and handled within the application context.",
+    "steps": [
+      "Arrange: Define a teardown_appcontext function that appends the received exception to a list.",
+      "Arrange: Push an application context using a 'with' block.",
+      "Act: Raise and catch an exception inside the 'with' block.",
+      "Act: Check the list populated by the teardown function after the block exits.",
+      "Assert: Confirm the list contains only None."
+    ],
+    "notes": [
+      "Uses the 'app' fixture."
+    ]
+  },
+  {
+    "file_path": "tests/test_appctx.py",
+    "test_name": "test_app_tearing_down_with_handled_exception_by_app_handler",
+    "summary": "Verifies that teardown_appcontext functions are called with None if an exception is raised during a request but handled by an application error handler.",
+    "steps": [
+      "Arrange: Configure the app to propagate exceptions.",
+      "Arrange: Define a teardown_appcontext function that appends the received exception to a list.",
+      "Arrange: Define a route that raises an exception.",
+      "Arrange: Define an error handler for the raised exception.",
+      "Arrange: Push an application context.",
+      "Act: Make a request to the route using the test client.",
+      "Act: Check the list populated by the teardown function.",
+      "Assert: Confirm the list contains only None."
+    ],
+    "notes": [
+      "Uses the 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_appctx.py",
+    "test_name": "test_app_tearing_down_with_unhandled_exception",
+    "summary": "Verifies that teardown_appcontext functions receive the exception object if an unhandled exception occurs during a request.",
+    "steps": [
+      "Arrange: Configure the app to propagate exceptions.",
+      "Arrange: Define a teardown_appcontext function that appends the received exception to a list.",
+      "Arrange: Define a route that raises a ValueError.",
+      "Arrange: Push an application context.",
+      "Act: Make a request to the route using the test client, expecting the ValueError to propagate.",
+      "Act: Check the list populated by the teardown function.",
+      "Assert: Confirm the list contains one item.",
+      "Assert: Confirm the item is an instance of ValueError with the correct message."
+    ],
+    "notes": [
+      "Uses the 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_appctx.py",
+    "test_name": "test_app_ctx_globals_methods",
+    "summary": "Verifies the basic dictionary-like methods (get, __contains__, setdefault, pop, __iter__, __repr__) of the application context global 'g'.",
+    "steps": [
+      "Arrange: Use the 'app_ctx' fixture to push an app context.",
+      "Act: Call g.get('foo') and g.get('foo', 'bar').",
+      "Assert: Check returned values (None and 'bar').",
+      "Act: Check 'foo' in g.",
+      "Assert: Confirm it's False.",
+      "Act: Assign g.foo = 'bar'.",
+      "Assert: Confirm 'foo' in g is True.",
+      "Act: Call g.setdefault('bar', 'the cake is a lie') then g.setdefault('bar', 'hello world').",
+      "Assert: Check g.bar is 'the cake is a lie'.",
+      "Act: Call g.pop('bar').",
+      "Assert: Confirm returned value is 'the cake is a lie'.",
+      "Act: Call g.pop('bar') again, expecting KeyError.",
+      "Assert: Confirm KeyError is raised.",
+      "Act: Call g.pop('bar', 'more cake').",
+      "Assert: Confirm returned value is 'more cake'.",
+      "Act: Iterate over g.",
+      "Assert: Confirm iteration yields ['foo'].",
+      "Act: Get repr(g).",
+      "Assert: Confirm representation matches '<flask.g of 'flask_test'>'."
+    ],
+    "notes": [
+      "Uses the 'app' and 'app_ctx' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_appctx.py",
+    "test_name": "test_custom_app_ctx_globals_class",
+    "summary": "Verifies that a custom class can be used for application context globals ('g') and accessed within templates.",
+    "steps": [
+      "Arrange: Define a custom class 'CustomRequestGlobals' with an attribute 'spam'.",
+      "Arrange: Set app.app_ctx_globals_class to the custom class.",
+      "Arrange: Push an application context.",
+      "Act: Render a template string accessing 'g.spam'.",
+      "Assert: Confirm the rendered string is 'eggs'."
+    ],
+    "notes": [
+      "Uses the 'app' fixture."
+    ]
+  },
+  {
+    "file_path": "tests/test_appctx.py",
+    "test_name": "test_context_refcounts",
+    "summary": "Verifies that application and request contexts are properly pushed and popped even with nested contexts, ensuring teardown functions execute correctly.",
+    "steps": [
+      "Arrange: Register teardown_request and teardown_appcontext functions that append to a list.",
+      "Arrange: Define a route that nests 'with app_ctx:' and 'with request_ctx:'.",
+      "Act: Make a request to the route using the test client.",
+      "Assert: Confirm the response status code is 200 and data is empty.",
+      "Assert: Confirm the teardown list contains ['request', 'app'] in the correct order."
+    ],
+    "notes": [
+      "Uses the 'app' and 'client' fixtures.",
+      "Relies on specific context management behavior."
+    ]
+  },
+  {
+    "file_path": "tests/test_appctx.py",
+    "test_name": "test_clean_pop",
+    "summary": "Verifies that teardown_appcontext functions run even if a teardown_request function raises an exception, and that the app context is cleanly popped.",
+    "steps": [
+      "Arrange: Set app.testing to False.",
+      "Arrange: Define a teardown_request function that raises ZeroDivisionError.",
+      "Arrange: Define a teardown_appcontext function that appends to a list.",
+      "Arrange: Push an application context using 'with', appending the app name to the list inside.",
+      "Assert: Confirm the list contains the app name followed by the teardown marker.",
+      "Assert: Confirm flask.current_app raises a RuntimeError (is unbound) after the context."
+    ],
+    "notes": [
+      "Uses the 'app' fixture.",
+      "Tests exception handling during teardown."
+    ]
+  },
+  {
+    "file_path": "tests/test_async.py",
+    "test_name": "test_async_route[///GET]",
+    "summary": "Verifies that an async route function responds correctly to GET requests.",
+    "steps": [
+      "Arrange: Use the 'async_app' fixture.",
+      "Arrange: Get the test client from the app.",
+      "Act: Make a GET request to the specified path ('/').",
+      "Assert: Confirm the response data contains b'GET'."
+    ],
+    "notes": [
+      "Uses pytest parameterization for paths.",
+      "Tests async view function handling.",
+      "Requires 'asgiref' to be installed."
+    ]
+  },
+  {
+    "file_path": "tests/test_async.py",
+    "test_name": "test_async_route[///POST]",
+    "summary": "Verifies that an async route function responds correctly to POST requests.",
+    "steps": [
+      "Arrange: Use the 'async_app' fixture.",
+      "Arrange: Get the test client from the app.",
+      "Act: Make a POST request to the specified path ('/').",
+      "Assert: Confirm the response data contains b'POST'."
+    ],
+    "notes": [
+      "Uses pytest parameterization for paths.",
+      "Tests async view function handling.",
+      "Requires 'asgiref' to be installed."
+    ]
+  },
+  {
+    "file_path": "tests/test_async.py",
+    "test_name": "test_async_route[/home/GET]",
+    "summary": "Verifies that an async route function responds correctly to GET requests.",
+    "steps": [
+      "Arrange: Use the 'async_app' fixture.",
+      "Arrange: Get the test client from the app.",
+      "Act: Make a GET request to the specified path ('/home').",
+      "Assert: Confirm the response data contains b'GET'."
+    ],
+    "notes": [
+      "Uses pytest parameterization for paths.",
+      "Tests async view function handling.",
+      "Requires 'asgiref' to be installed."
+    ]
+  },
+  {
+    "file_path": "tests/test_async.py",
+    "test_name": "test_async_route[/home/POST]",
+    "summary": "Verifies that an async route function responds correctly to POST requests.",
+    "steps": [
+      "Arrange: Use the 'async_app' fixture.",
+      "Arrange: Get the test client from the app.",
+      "Act: Make a POST request to the specified path ('/home').",
+      "Assert: Confirm the response data contains b'POST'."
+    ],
+    "notes": [
+      "Uses pytest parameterization for paths.",
+      "Tests async view function handling.",
+      "Requires 'asgiref' to be installed."
+    ]
+  },
+  {
+    "file_path": "tests/test_async.py",
+    "test_name": "test_async_route[/bp//GET]",
+    "summary": "Verifies that an async route function responds correctly to GET requests.",
+    "steps": [
+      "Arrange: Use the 'async_app' fixture.",
+      "Arrange: Get the test client from the app.",
+      "Act: Make a GET request to the specified path ('/bp/').",
+      "Assert: Confirm the response data contains b'GET'."
+    ],
+    "notes": [
+      "Uses pytest parameterization for paths.",
+      "Tests async view function handling.",
+      "Requires 'asgiref' to be installed."
+    ]
+  },
+  {
+    "file_path": "tests/test_async.py",
+    "test_name": "test_async_route[/bp//POST]",
+    "summary": "Verifies that an async route function responds correctly to POST requests.",
+    "steps": [
+      "Arrange: Use the 'async_app' fixture.",
+      "Arrange: Get the test client from the app.",
+      "Act: Make a POST request to the specified path ('/bp/').",
+      "Assert: Confirm the response data contains b'POST'."
+    ],
+    "notes": [
+      "Uses pytest parameterization for paths.",
+      "Tests async view function handling.",
+      "Requires 'asgiref' to be installed."
+    ]
+  },
+  {
+    "file_path": "tests/test_async.py",
+    "test_name": "test_async_route[/view/GET]",
+    "summary": "Verifies that an async route function responds correctly to GET requests.",
+    "steps": [
+      "Arrange: Use the 'async_app' fixture.",
+      "Arrange: Get the test client from the app.",
+      "Act: Make a GET request to the specified path ('/view').",
+      "Assert: Confirm the response data contains b'GET'."
+    ],
+    "notes": [
+      "Uses pytest parameterization for paths.",
+      "Tests async view function handling.",
+      "Requires 'asgiref' to be installed."
+    ]
+  },
+  {
+    "file_path": "tests/test_async.py",
+    "test_name": "test_async_route[/view/POST]",
+    "summary": "Verifies that an async route function responds correctly to POST requests.",
+    "steps": [
+      "Arrange: Use the 'async_app' fixture.",
+      "Arrange: Get the test client from the app.",
+      "Act: Make a POST request to the specified path ('/view').",
+      "Assert: Confirm the response data contains b'POST'."
+    ],
+    "notes": [
+      "Uses pytest parameterization for paths.",
+      "Tests async view function handling.",
+      "Requires 'asgiref' to be installed."
+    ]
+  },
+  {
+    "file_path": "tests/test_async.py",
+    "test_name": "test_async_route[/methodview/GET]",
+    "summary": "Verifies that an async route function responds correctly to GET requests.",
+    "steps": [
+      "Arrange: Use the 'async_app' fixture.",
+      "Arrange: Get the test client from the app.",
+      "Act: Make a GET request to the specified path ('/methodview').",
+      "Assert: Confirm the response data contains b'GET'."
+    ],
+    "notes": [
+      "Uses pytest parameterization for paths.",
+      "Tests async view function handling.",
+      "Requires 'asgiref' to be installed."
+    ]
+  },
+  {
+    "file_path": "tests/test_async.py",
+    "test_name": "test_async_route[/methodview/POST]",
+    "summary": "Verifies that an async route function responds correctly to POST requests.",
+    "steps": [
+      "Arrange: Use the 'async_app' fixture.",
+      "Arrange: Get the test client from the app.",
+      "Act: Make a POST request to the specified path ('/methodview').",
+      "Assert: Confirm the response data contains b'POST'."
+    ],
+    "notes": [
+      "Uses pytest parameterization for paths.",
+      "Tests async view function handling.",
+      "Requires 'asgiref' to be installed."
+    ]
+  },
+  {
+    "file_path": "tests/test_async.py",
+    "test_name": "test_async_error_handler[/error]",
+    "summary": "Verifies that an async error handler correctly handles exceptions raised from an async view.",
+    "steps": [
+      "Arrange: Use the 'async_app' fixture.",
+      "Arrange: Get the test client from the app.",
+      "Act: Make a GET request to the specified error path ('/error').",
+      "Assert: Confirm the response status code is 412 (as defined in the handler)."
+    ],
+    "notes": [
+      "Uses pytest parameterization for paths.",
+      "Tests async error handler.",
+      "Requires 'asgiref' to be installed."
+    ]
+  },
+  {
+    "file_path": "tests/test_async.py",
+    "test_name": "test_async_error_handler[/bp/error]",
+    "summary": "Verifies that an async error handler correctly handles exceptions raised from an async view.",
+    "steps": [
+      "Arrange: Use the 'async_app' fixture.",
+      "Arrange: Get the test client from the app.",
+      "Act: Make a GET request to the specified error path ('/bp/error').",
+      "Assert: Confirm the response status code is 412 (as defined in the handler)."
+    ],
+    "notes": [
+      "Uses pytest parameterization for paths.",
+      "Tests async error handler.",
+      "Requires 'asgiref' to be installed."
+    ]
+  },
+  {
+    "file_path": "tests/test_async.py",
+    "test_name": "test_async_before_after_request",
+    "summary": "Verifies that async before_request and after_request handlers (both app and blueprint level) are executed correctly.",
+    "steps": [
+      "Arrange: Create a Flask app.",
+      "Arrange: Define an async app before_request handler.",
+      "Arrange: Define an async app after_request handler.",
+      "Arrange: Create a Blueprint.",
+      "Arrange: Define an async blueprint before_request handler.",
+      "Arrange: Define an async blueprint after_request handler.",
+      "Arrange: Register the blueprint.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to the app route.",
+      "Assert: Confirm the app before and after request handlers were called.",
+      "Act: Make a GET request to the blueprint route.",
+      "Assert: Confirm the blueprint before and after request handlers were called."
+    ],
+    "notes": [
+      "Tests async request lifecycle hooks.",
+      "Requires 'asgiref' to be installed."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_options_work",
+    "summary": "Verifies that an OPTIONS request to a route returns the correct allowed methods in the Allow header.",
+    "steps": [
+      "Arrange: Define a route '/' supporting GET and POST methods.",
+      "Arrange: Get the test client.",
+      "Act: Make an OPTIONS request to '/'.",
+      "Assert: Confirm the Allow header contains GET, HEAD, OPTIONS, and POST.",
+      "Assert: Confirm the response body is empty."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures.",
+      "HEAD and OPTIONS are added automatically by Flask."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_options_on_multiple_rules",
+    "summary": "Verifies that an OPTIONS request to a URL with multiple rules returns the combined allowed methods.",
+    "steps": [
+      "Arrange: Define a route '/' supporting GET and POST.",
+      "Arrange: Define another route '/' supporting PUT.",
+      "Arrange: Get the test client.",
+      "Act: Make an OPTIONS request to '/'.",
+      "Assert: Confirm the Allow header contains GET, HEAD, OPTIONS, POST, and PUT."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_method_route[get]",
+    "summary": "Verifies that the @app.get shortcut correctly registers and handles a GET request.",
+    "steps": [
+      "Arrange: Define a route '/' using the @app.get decorator.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/'.",
+      "Assert: Confirm the response data is b'Hello'."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures.",
+      "Uses pytest parameterization for methods."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_method_route[post]",
+    "summary": "Verifies that the @app.post shortcut correctly registers and handles a POST request.",
+    "steps": [
+      "Arrange: Define a route '/' using the @app.post decorator.",
+      "Arrange: Get the test client.",
+      "Act: Make a POST request to '/'.",
+      "Assert: Confirm the response data is b'Hello'."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures.",
+      "Uses pytest parameterization for methods."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_method_route[put]",
+    "summary": "Verifies that the @app.put shortcut correctly registers and handles a PUT request.",
+    "steps": [
+      "Arrange: Define a route '/' using the @app.put decorator.",
+      "Arrange: Get the test client.",
+      "Act: Make a PUT request to '/'.",
+      "Assert: Confirm the response data is b'Hello'."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures.",
+      "Uses pytest parameterization for methods."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_method_route[delete]",
+    "summary": "Verifies that the @app.delete shortcut correctly registers and handles a DELETE request.",
+    "steps": [
+      "Arrange: Define a route '/' using the @app.delete decorator.",
+      "Arrange: Get the test client.",
+      "Act: Make a DELETE request to '/'.",
+      "Assert: Confirm the response data is b'Hello'."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures.",
+      "Uses pytest parameterization for methods."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_method_route[patch]",
+    "summary": "Verifies that the @app.patch shortcut correctly registers and handles a PATCH request.",
+    "steps": [
+      "Arrange: Define a route '/' using the @app.patch decorator.",
+      "Arrange: Get the test client.",
+      "Act: Make a PATCH request to '/'.",
+      "Assert: Confirm the response data is b'Hello'."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures.",
+      "Uses pytest parameterization for methods."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_method_route_no_methods",
+    "summary": "Verifies that providing a 'methods' argument to the method-specific route decorators raises a TypeError.",
+    "steps": [
+      "Arrange: Get the Flask app instance.",
+      "Act: Attempt to use app.get with a methods argument.",
+      "Assert: Confirm that a TypeError is raised."
+    ],
+    "notes": [
+      "Uses 'app' fixture."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_provide_automatic_options_attr",
+    "summary": "Verifies the behavior of the provide_automatic_options attribute on view functions.",
+    "steps": [
+      "Arrange: Create an app and a view function.",
+      "Arrange: Set provide_automatic_options = False on the view function.",
+      "Arrange: Register the route.",
+      "Act: Make an OPTIONS request.",
+      "Assert: Confirm the status code is 405 (Method Not Allowed).",
+      "Arrange: Create a new app and view function.",
+      "Arrange: Set provide_automatic_options = True and methods=['OPTIONS'].",
+      "Arrange: Register the route.",
+      "Act: Make an OPTIONS request.",
+      "Assert: Confirm the Allow header only contains OPTIONS.",
+      "Arrange: Create a new app and view function (default options).",
+      "Arrange: Register the route.",
+      "Act: Make an OPTIONS request.",
+      "Assert: Confirm OPTIONS is in the Allow header."
+    ],
+    "notes": []
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_provide_automatic_options_kwarg",
+    "summary": "Verifies that setting provide_automatic_options=False in add_url_rule disables automatic OPTIONS handling.",
+    "steps": [
+      "Arrange: Define view functions 'index' and 'more'.",
+      "Arrange: Register routes '/' and '/more' using add_url_rule with provide_automatic_options=False.",
+      "Arrange: Get the test client.",
+      "Act: Make various requests (GET, POST, OPTIONS, HEAD, DELETE) to both routes.",
+      "Assert: Confirm expected responses and status codes, specifically checking that OPTIONS requests return 405."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_request_dispatching",
+    "summary": "Verifies basic request dispatching for different HTTP methods (GET, POST, HEAD, DELETE) and expected 405 responses.",
+    "steps": [
+      "Arrange: Define a route '/' supporting GET.",
+      "Arrange: Define a route '/more' supporting GET and POST.",
+      "Arrange: Get the test client.",
+      "Act: Make GET, POST, HEAD requests to '/'.",
+      "Assert: Check response data, status codes, and Allow headers for '/'.",
+      "Act: Make GET, POST, DELETE requests to '/more'.",
+      "Assert: Check response data, status codes, and Allow headers for '/more'."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_disallow_string_for_allowed_methods",
+    "summary": "Verifies that passing a string instead of a list for the 'methods' argument in add_url_rule raises a TypeError.",
+    "steps": [
+      "Arrange: Get the Flask app instance.",
+      "Act: Call app.add_url_rule with methods='GET POST'.",
+      "Assert: Confirm that a TypeError is raised."
+    ],
+    "notes": [
+      "Uses 'app' fixture."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_url_mapping",
+    "summary": "Verifies request dispatching and OPTIONS handling when routes are added using add_url_rule and specifically including 'options'.",
+    "steps": [
+      "Arrange: Define view functions 'index', 'more', and 'options'.",
+      "Arrange: Add URL rules for '/', '/more', and '/options' using app.add_url_rule.",
+      "Arrange: Ensure '/options' explicitly includes 'options' (lowercase) in its methods.",
+      "Arrange: Get the test client.",
+      "Act: Make GET, POST, HEAD, DELETE requests to '/' and '/more'.",
+      "Assert: Check responses, status codes, and Allow headers.",
+      "Act: Make an OPTIONS request to '/options'.",
+      "Assert: Confirm the status code is 200 and the response contains the expected data (verifying the explicit options handler is used)."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures.",
+      "Tests Issue 1288 regarding lowercase 'options' method handling."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_werkzeug_routing",
+    "summary": "Verifies that Werkzeug Submounts work correctly with Flask for routing.",
+    "steps": [
+      "Arrange: Create a Werkzeug Submount '/foo' containing rules '/bar' (endpoint 'bar') and '/' (endpoint 'index').",
+      "Arrange: Add the Submount to the app's url_map.",
+      "Arrange: Define view functions 'bar' and 'index' and register them with the app.",
+      "Arrange: Get the test client.",
+      "Act: Make GET requests to '/foo/' and '/foo/bar'.",
+      "Assert: Confirm the responses match the expected data ('index' and 'bar')."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures.",
+      "Demonstrates integration with advanced Werkzeug routing features."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_endpoint_decorator",
+    "summary": "Verifies that the @app.endpoint decorator correctly registers view functions for endpoints defined separately.",
+    "steps": [
+      "Arrange: Create a Werkzeug Submount '/foo' containing rules '/bar' (endpoint 'bar') and '/' (endpoint 'index').",
+      "Arrange: Add the Submount to the app's url_map.",
+      "Arrange: Define view functions 'bar' and 'index' using the @app.endpoint decorator.",
+      "Arrange: Get the test client.",
+      "Act: Make GET requests to '/foo/' and '/foo/bar'.",
+      "Assert: Confirm the responses match the expected data ('index' and 'bar')."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_session",
+    "summary": "Verifies basic session functionality: setting, getting, modification tracking, and access tracking.",
+    "steps": [
+      "Arrange: Define a '/set' route (POST) that sets session['value'] and checks accessed/modified flags.",
+      "Arrange: Define a '/get' route (GET) that gets session['value'] and checks accessed/modified flags.",
+      "Arrange: Get the test client.",
+      "Act: Make a POST request to '/set' with data.",
+      "Assert: Confirm the response is 'value set'.",
+      "Act: Make a GET request to '/get'.",
+      "Assert: Confirm the response data is the value set previously ('42')."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_session_path",
+    "summary": "Verifies that the session cookie path is set correctly based on the APPLICATION_ROOT config.",
+    "steps": [
+      "Arrange: Set app.config['APPLICATION_ROOT'] = '/foo'.",
+      "Arrange: Define a route '/' that sets a session variable.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/' with a base URL including the prefix.",
+      "Assert: Confirm the 'Set-Cookie' header in the response includes 'path=/foo'."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_session_using_application_root",
+    "summary": "Verifies that the session cookie path is correctly set using APPLICATION_ROOT when a middleware modifies SCRIPT_NAME.",
+    "steps": [
+      "Arrange: Define a middleware that sets environ['SCRIPT_NAME'].",
+      "Arrange: Wrap the app's wsgi_app with the middleware.",
+      "Arrange: Set app.config['APPLICATION_ROOT'] to match the middleware prefix.",
+      "Arrange: Define a route '/' that sets a session variable.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/'.",
+      "Assert: Confirm the 'Set-Cookie' header in the response includes the correct path based on APPLICATION_ROOT."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures.",
+      "Tests interaction between middleware, APPLICATION_ROOT, and session cookie path."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_session_using_session_settings",
+    "summary": "Verifies that various SESSION_COOKIE_* config options (DOMAIN, HTTPONLY, SECURE, SAMESITE, PARTITIONED, PATH) are correctly applied to the Set-Cookie header.",
+    "steps": [
+      "Arrange: Set various SESSION_COOKIE_* options in app.config, including SERVER_NAME and APPLICATION_ROOT.",
+      "Arrange: Define a route '/' that sets a session variable.",
+      "Arrange: Define a route '/clear' that clears the session.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/'.",
+      "Assert: Check the 'Set-Cookie' header for the presence/absence and correct values of 'domain', 'path', 'secure', 'httponly', 'samesite', 'partitioned'.",
+      "Act: Make a GET request to '/clear'.",
+      "Assert: Check the 'Set-Cookie' header for the session clearing attributes, ensuring domain, path, secure, etc., are still applied."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_session_using_samesite_attribute",
+    "summary": "Verifies that the SESSION_COOKIE_SAMESITE config correctly sets the SameSite attribute on the session cookie.",
+    "steps": [
+      "Arrange: Define a route '/' that sets a session variable.",
+      "Arrange: Get the test client.",
+      "Act: Set SESSION_COOKIE_SAMESITE to 'invalid'.",
+      "Assert: Making a GET request raises ValueError.",
+      "Act: Set SESSION_COOKIE_SAMESITE to None.",
+      "Assert: Making a GET request results in a cookie without the SameSite attribute.",
+      "Act: Set SESSION_COOKIE_SAMESITE to 'Strict'.",
+      "Assert: Making a GET request results in a cookie with 'samesite=strict'.",
+      "Act: Set SESSION_COOKIE_SAMESITE to 'Lax'.",
+      "Assert: Making a GET request results in a cookie with 'samesite=lax'."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_missing_session",
+    "summary": "Verifies that accessing or modifying the session raises a RuntimeError if the secret key is not set.",
+    "steps": [
+      "Arrange: Set app.secret_key = None.",
+      "Arrange: Define a helper function 'expect_exception' to check for the specific RuntimeError.",
+      "Arrange: Push a test request context.",
+      "Act: Call flask.session.get('missing_key').",
+      "Assert: Confirm it returns None (read-only access allowed on null session).",
+      "Act: Call flask.session['foo'] = 42.",
+      "Assert: Use 'expect_exception' to confirm the correct RuntimeError is raised.",
+      "Act: Call flask.session.pop('foo').",
+      "Assert: Use 'expect_exception' to confirm the correct RuntimeError is raised."
+    ],
+    "notes": [
+      "Uses the 'app' fixture."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_session_secret_key_fallbacks",
+    "summary": "Verifies that the SECRET_KEY_FALLBACKS config allows sessions signed with old keys to still be loaded after the main SECRET_KEY changes.",
+    "steps": [
+      "Arrange: Define POST and GET routes to set and get a session variable.",
+      "Arrange: Get the test client.",
+      "Act: Set a session variable using the initial secret key.",
+      "Assert: Verify the session variable can be retrieved.",
+      "Act: Change app.secret_key.",
+      "Assert: Verify the session is now empty (cannot be loaded).",
+      "Act: Add the initial secret key to app.config['SECRET_KEY_FALLBACKS'].",
+      "Assert: Verify the session variable can be retrieved again using the fallback key."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures.",
+      "Tests key rotation support."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_session_expiration",
+    "summary": "Verifies that the session cookie's 'expires' attribute is set correctly based on session.permanent and PERMANENT_SESSION_LIFETIME.",
+    "steps": [
+      "Arrange: Define a route '/' that sets session['test'] and session.permanent.",
+      "Arrange: Define a route '/test' that returns the string representation of session.permanent.",
+      "Arrange: Get the test client.",
+      "Arrange: Set session.permanent = True.",
+      "Act: Make a GET request to '/'.",
+      "Assert: Check the 'expires' attribute in the 'Set-Cookie' header matches the expected time based on app.permanent_session_lifetime.",
+      "Act: Make a GET request to '/test'.",
+      "Assert: Confirm response data is b'True'.",
+      "Arrange: Set session.permanent = False.",
+      "Act: Make a GET request to '/'.",
+      "Assert: Confirm the 'Set-Cookie' header does *not* contain an 'expires' attribute."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_session_stored_last",
+    "summary": "Verifies that modifications to the session in an after_request handler are correctly saved.",
+    "steps": [
+      "Arrange: Define an after_request handler that sets session['foo'] = 42.",
+      "Arrange: Define a route '/' that returns the current value of session.get('foo').",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/'.",
+      "Assert: Confirm the response data is b'None' (value before after_request ran).",
+      "Act: Make another GET request to '/'.",
+      "Assert: Confirm the response data is b'42' (value set by after_request in the previous request)."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_session_special_types",
+    "summary": "Verifies that special Python types (tuple, bytes, Markup, UUID, datetime) are correctly serialized and deserialized by the default session interface.",
+    "steps": [
+      "Arrange: Define a route '/' that sets various special types into the session.",
+      "Arrange: Get the test client.",
+      "Arrange: Use the client context manager.",
+      "Act: Make a GET request to '/'.",
+      "Act: Access the session object directly within the client context.",
+      "Assert: Confirm each special type was retrieved correctly with its original type."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures.",
+      "Relies on the TaggedJSONSerializer behavior."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_session_cookie_setting",
+    "summary": "Verifies the conditions under which the session cookie is set based on SESSION_REFRESH_EACH_REQUEST and session.permanent.",
+    "steps": [
+      "Arrange: Define '/bump' route that increments session['foo'] and sets session.permanent.",
+      "Arrange: Define '/read' route that returns session['foo'].",
+      "Arrange: Define a helper function 'run_test' that makes multiple requests to '/bump' and '/read' and checks if 'Set-Cookie' header is present on the final read.",
+      "Act: Set session.permanent = True and SESSION_REFRESH_EACH_REQUEST = True.",
+      "Assert: Call run_test and confirm header is present.",
+      "Act: Set session.permanent = True and SESSION_REFRESH_EACH_REQUEST = False.",
+      "Assert: Call run_test and confirm header is *not* present.",
+      "Act: Set session.permanent = False and SESSION_REFRESH_EACH_REQUEST = True.",
+      "Assert: Call run_test and confirm header is *not* present (non-permanent session).",
+      "Act: Set session.permanent = False and SESSION_REFRESH_EACH_REQUEST = False.",
+      "Assert: Call run_test and confirm header is *not* present."
+    ],
+    "notes": [
+      "Uses the 'app' fixture."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_session_vary_cookie",
+    "summary": "Verifies that the 'Vary: Cookie' header is added correctly when the session is accessed or modified.",
+    "steps": [
+      "Arrange: Define routes /set, /get, /getitem, /setdefault, /clear that interact with the session.",
+      "Arrange: Define routes /vary-cookie-header-set and /vary-header-set that modify the Vary header.",
+      "Arrange: Define /no-vary-header that does not touch the session.",
+      "Arrange: Get the test client.",
+      "Arrange: Define helper 'expect' to make GET request and check Vary header.",
+      "Act: Call 'expect' for each route.",
+      "Assert: Confirm 'Vary: Cookie' header is present for session-modifying routes.",
+      "Assert: Confirm 'Vary' header includes 'Cookie' when modified by other routes.",
+      "Assert: Confirm 'Vary' header is absent when session is not touched."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_session_refresh_vary",
+    "summary": "Verifies that the 'Vary: Cookie' header is added even on requests that don't modify the session, if the session was set as permanent in a previous request.",
+    "steps": [
+      "Arrange: Define '/login' route that sets a permanent session.",
+      "Arrange: Define '/ignored' route that does nothing with the session.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/login'.",
+      "Assert: Confirm 'Vary: Cookie' is in the response headers.",
+      "Act: Make a GET request to '/ignored'.",
+      "Assert: Confirm 'Vary: Cookie' is still in the response headers due to the permanent session being refreshed (implicitly or explicitly)."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_flashes",
+    "summary": "Verifies basic message flashing functionality, including session modification tracking.",
+    "steps": [
+      "Arrange: Use the 'req_ctx' fixture to push a request context.",
+      "Assert: Confirm session is not modified initially.",
+      "Act: Call flask.flash('Zap').",
+      "Arrange: Manually reset session.modified to False.",
+      "Act: Call flask.flash('Zip').",
+      "Assert: Confirm session is now marked as modified.",
+      "Act: Call flask.get_flashed_messages().",
+      "Assert: Confirm the returned list contains ['Zap', 'Zip']."
+    ],
+    "notes": [
+      "Uses 'app' and 'req_ctx' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_extended_flashing",
+    "summary": "Verifies advanced message flashing features: categories, category filtering, and Markup support.",
+    "steps": [
+      "Arrange: Define a route '/' that flashes messages with different categories, including a Markup message.",
+      "Arrange: Define '/test' route that gets all flashed messages.",
+      "Arrange: Define '/test_with_categories' route that gets messages with categories.",
+      "Arrange: Define '/test_filter' route that gets messages filtered by one category.",
+      "Arrange: Define '/test_filters' route that gets messages filtered by multiple categories.",
+      "Arrange: Define '/test_filters_without_returning_categories' route that gets filtered messages without categories.",
+      "Act: For each test route, create a new test client, make a GET request to '/', then a GET request to the specific test route.",
+      "Assert: In each test route's view function (implicitly via client request), assert that the messages retrieved by get_flashed_messages match the expected format and content for that test case."
+    ],
+    "notes": [
+      "Uses the 'app' fixture.",
+      "Requires app.testing = True to propagate assertion errors.",
+      "Tests flashing categories, category filtering, and Markup safety."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_request_processing",
+    "summary": "Verifies the execution order of before_request and after_request handlers.",
+    "steps": [
+      "Arrange: Define a before_request handler that appends 'before' to a list.",
+      "Arrange: Define an after_request handler that appends 'after' and modifies response data.",
+      "Arrange: Define a route '/' that returns 'request' and checks handler execution order.",
+      "Arrange: Get the test client.",
+      "Assert: Check the event list is initially empty.",
+      "Act: Make a GET request to '/'.",
+      "Assert: Confirm 'after' is in the event list after the request.",
+      "Assert: Confirm the final response data includes modifications from the after_request handler.",
+      "Assert: (implicitly via view function assertions) Confirm 'before' ran before the view and 'after' did not."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_request_preprocessing_early_return",
+    "summary": "Verifies that if a before_request handler returns a value, subsequent before_request handlers and the view function are not called.",
+    "steps": [
+      "Arrange: Define three before_request handlers, appending numbers 1, 2, 3 to a list. Handler 2 returns 'hello'.",
+      "Arrange: Define a route '/' that appends 'index'.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/'.",
+      "Assert: Confirm the response data is b'hello'.",
+      "Assert: Confirm the event list is [1, 2]."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_after_request_processing",
+    "summary": "Verifies that functions registered with @after_this_request are executed and can modify the response.",
+    "steps": [
+      "Arrange: Define a route '/' where the view function registers an after_this_request callback to add a header.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/'.",
+      "Assert: Confirm the status code is 200.",
+      "Assert: Confirm the custom header 'X-Foo' is present in the response."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_teardown_request_handler",
+    "summary": "Verifies that teardown_request handlers are called after a successful request, even in testing mode.",
+    "steps": [
+      "Arrange: Define a teardown_request handler that appends to a list.",
+      "Arrange: Define a simple route '/'.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/'.",
+      "Assert: Confirm the status code is 200 and response data is correct.",
+      "Assert: Confirm the teardown handler was called once."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_teardown_request_handler_debug_mode",
+    "summary": "Verifies that teardown_request handlers are called after a successful request, even in debug mode.",
+    "steps": [
+      "Arrange: Define a teardown_request handler that appends to a list.",
+      "Arrange: Define a simple route '/'.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/'.",
+      "Assert: Confirm the status code is 200 and response data is correct.",
+      "Assert: Confirm the teardown handler was called once."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures.",
+      "This test seems identical to test_teardown_request_handler but implies debug mode might affect it (though app fixture defaults to TESTING=True)."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_teardown_request_handler_error",
+    "summary": "Verifies that all teardown_request handlers are called even if an exception occurs in the view, and they all receive the original exception.",
+    "steps": [
+      "Arrange: Set app.testing = False.",
+      "Arrange: Define two teardown_request handlers that assert the received exception is ZeroDivisionError and append to a list. They also raise and catch a TypeError internally.",
+      "Arrange: Define a route '/' that raises ZeroDivisionError.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/'.",
+      "Assert: Confirm the status code is 500.",
+      "Assert: Confirm both teardown handlers were called."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures.",
+      "Tests teardown behavior during exceptions."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_before_after_request_order",
+    "summary": "Verifies the precise execution order of multiple before_request, after_request, and teardown_request handlers.",
+    "steps": [
+      "Arrange: Define multiple handlers for before_request, after_request, and teardown_request, each appending a unique identifier to a list.",
+      "Arrange: Define a route '/' that returns '42'.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/'.",
+      "Assert: Confirm the response data is '42'.",
+      "Assert: Confirm the list of identifiers matches the expected execution order: [before1, before2, after2, after1, finish2, finish1]."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures.",
+      "Demonstrates LIFO order for after_request and teardown_request handlers."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_error_handling",
+    "summary": "Verifies that custom error handlers registered with @app.errorhandler for status codes and exceptions are correctly invoked.",
+    "steps": [
+      "Arrange: Set app.testing = False.",
+      "Arrange: Define error handlers for 404, 500, and the Forbidden exception.",
+      "Arrange: Define a route '/' that aborts with 404.",
+      "Arrange: Define a route '/error' that raises ZeroDivisionError.",
+      "Arrange: Define a route '/forbidden' that aborts with 403.",
+      "Arrange: Get the test client.",
+      "Act: Make GET requests to '/', '/error', and '/forbidden'.",
+      "Assert: Confirm the status codes and response data match those defined in the respective error handlers."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_error_handling_processing",
+    "summary": "Verifies that after_request handlers are still processed even when an error handler is invoked.",
+    "steps": [
+      "Arrange: Set app.testing = False.",
+      "Arrange: Define an error handler for 500.",
+      "Arrange: Define a route '/' that raises ZeroDivisionError.",
+      "Arrange: Define an after_request handler that modifies the response mimetype.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/'.",
+      "Assert: Confirm the response mimetype was modified by the after_request handler.",
+      "Assert: Confirm the response data comes from the error handler."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_baseexception_error_handling",
+    "summary": "Verifies that BaseExceptions like KeyboardInterrupt are not caught by the default Flask error handling and propagate up.",
+    "steps": [
+      "Arrange: Set app.testing = False.",
+      "Arrange: Define a route '/' that raises KeyboardInterrupt.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/'.",
+      "Assert: Confirm that KeyboardInterrupt is raised (and not caught by Flask)."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_before_request_and_routing_errors",
+    "summary": "Verifies that before_request handlers run even for requests that result in a 404 routing error, and the error handler can access 'g'.",
+    "steps": [
+      "Arrange: Define a before_request handler that sets g.something.",
+      "Arrange: Define a 404 error handler that returns g.something.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to a non-existent route '/'.",
+      "Assert: Confirm the status code is 404.",
+      "Assert: Confirm the response data is the value set in 'g' by the before_request handler."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_user_error_handling",
+    "summary": "Verifies that custom exception classes can be registered with @app.errorhandler and handled correctly.",
+    "steps": [
+      "Arrange: Define a custom exception class 'MyException'.",
+      "Arrange: Define an error handler for 'MyException'.",
+      "Arrange: Define a route '/' that raises 'MyException'.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/'.",
+      "Assert: Confirm the response data matches the value returned by the custom error handler."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_http_error_subclass_handling",
+    "summary": "Verifies the precedence of error handlers when dealing with subclasses of HTTPException and status codes.",
+    "steps": [
+      "Arrange: Define two subclasses of Forbidden: one registered, one not.",
+      "Arrange: Define an error handler specifically for the registered subclass.",
+      "Arrange: Define an error handler for the status code 403.",
+      "Arrange: Define routes that raise the registered subclass, the unregistered subclass, abort(403), and the base Forbidden exception.",
+      "Arrange: Get the test client.",
+      "Act: Make GET requests to each route.",
+      "Assert: Confirm the correct error handler (subclass-specific or code-specific) is invoked based on the exception raised."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures.",
+      "Demonstrates MRO (Method Resolution Order) lookup for error handlers."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_errorhandler_precedence",
+    "summary": "Tests error handler precedence with multiple inheritance.",
+    "steps": [
+      "Arrange: Define exceptions E1, E2, and E3(E1, E2).",
+      "Arrange: Define handlers for E2 and the base Exception.",
+      "Arrange: Define routes to raise E1 and E3.",
+      "Arrange: Get the test client.",
+      "Act: Make GET requests to /E1 and /E3.",
+      "Assert: Check that /E1 uses the 'Exception' handler and /E3 uses the more specific 'E2' handler based on MRO."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures.",
+      "Demonstrates error handler resolution order."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_trap_bad_request_key_error[False-None-True-True]",
+    "summary": "Verifies BadRequestKeyError trapping behavior based on DEBUG and TRAP_BAD_REQUEST_ERRORS config (case: DEBUG=False, TRAP=None).",
+    "steps": [
+      "Arrange: Set app.config['DEBUG'] = False.",
+      "Arrange: Set app.config['TRAP_BAD_REQUEST_ERRORS'] = None.",
+      "Arrange: Define a route '/key' that causes a BadRequestKeyError.",
+      "Arrange: Define a route '/abort' that calls abort(400).",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/key'.",
+      "Assert: Confirm status code is 400 and the key name is *not* in the response (expect_key=True).",
+      "Act: Make a GET request to '/abort'.",
+      "Assert: Confirm status code is 400 (expect_abort=True)."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures.",
+      "Parameterized test for error trapping configuration."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_trap_bad_request_key_error[True-None-False-True]",
+    "summary": "Verifies BadRequestKeyError trapping behavior based on DEBUG and TRAP_BAD_REQUEST_ERRORS config (case: DEBUG=True, TRAP=None).",
+    "steps": [
+      "Arrange: Set app.config['DEBUG'] = True.",
+      "Arrange: Set app.config['TRAP_BAD_REQUEST_ERRORS'] = None.",
+      "Arrange: Define a route '/key' that causes a BadRequestKeyError.",
+      "Arrange: Define a route '/abort' that calls abort(400).",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/key'.",
+      "Assert: Confirm a KeyError (subclass of BadRequest) is raised and contains the missing key name (expect_key=False).",
+      "Act: Make a GET request to '/abort'.",
+      "Assert: Confirm status code is 400 (expect_abort=True)."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures.",
+      "Parameterized test for error trapping configuration."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_trap_bad_request_key_error[False-True-False-False]",
+    "summary": "Verifies BadRequestKeyError trapping behavior based on DEBUG and TRAP_BAD_REQUEST_ERRORS config (case: DEBUG=False, TRAP=True).",
+    "steps": [
+      "Arrange: Set app.config['DEBUG'] = False.",
+      "Arrange: Set app.config['TRAP_BAD_REQUEST_ERRORS'] = True.",
+      "Arrange: Define a route '/key' that causes a BadRequestKeyError.",
+      "Arrange: Define a route '/abort' that calls abort(400).",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/key'.",
+      "Assert: Confirm a KeyError (subclass of BadRequest) is raised and contains the missing key name (expect_key=False).",
+      "Act: Make a GET request to '/abort'.",
+      "Assert: Confirm a BadRequest exception is raised (expect_abort=False)."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures.",
+      "Parameterized test for error trapping configuration."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_trapping_of_all_http_exceptions",
+    "summary": "Verifies that setting TRAP_HTTP_EXCEPTIONS=True causes HTTP exceptions raised via abort() to propagate instead of being handled.",
+    "steps": [
+      "Arrange: Set app.config['TRAP_HTTP_EXCEPTIONS'] = True.",
+      "Arrange: Define a route '/fail' that calls abort(404).",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/fail'.",
+      "Assert: Confirm that a NotFound exception is raised."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_error_handler_after_processor_error",
+    "summary": "Verifies that an error handler is still invoked even if an exception occurs in a before_request or after_request processor.",
+    "steps": [
+      "Arrange: Set app.testing = False.",
+      "Arrange: Define a before_request handler that conditionally raises ZeroDivisionError.",
+      "Arrange: Define an after_request handler that conditionally raises ZeroDivisionError.",
+      "Arrange: Define a simple route '/'.",
+      "Arrange: Define an error handler for 500.",
+      "Arrange: Get the test client.",
+      "Act: Set condition to raise in before_request, make GET request.",
+      "Assert: Confirm status code is 500 and data matches error handler.",
+      "Act: Set condition to raise in after_request, make GET request.",
+      "Assert: Confirm status code is 500 and data matches error handler."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures.",
+      "Tests error handling interaction with request processors."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_enctype_debug_helper",
+    "summary": "Verifies that accessing request.files for a key that exists in request.form but not files raises a helpful DebugFilesKeyError in debug mode.",
+    "steps": [
+      "Arrange: Set app.debug = True.",
+      "Arrange: Define a route '/fail' (POST) that accesses request.files['foo'].",
+      "Arrange: Get the test client.",
+      "Act: Make a POST request to '/fail' with form data {'foo': 'index.txt'} but *without* enctype='multipart/form-data'.",
+      "Assert: Confirm that DebugFilesKeyError is raised.",
+      "Assert: Confirm the error message contains expected debug information about missing enctype and the submitted form value."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_response_types",
+    "summary": "Verifies that various return types from view functions are correctly converted into Response objects with appropriate data, status, headers, and mimetypes.",
+    "steps": [
+      "Arrange: Define multiple routes returning different types: string, bytes, tuple (full, headers only, status only), Response object (modified by tuple), WSGI application (HTTPException), dict, list.",
+      "Arrange: Get the test client.",
+      "Act: Make GET requests to each route.",
+      "Assert: For each response, check data, status code, headers (like X-Foo), and mimetype to ensure they match the expected values based on Flask's response conversion logic."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures.",
+      "Comprehensive test of Flask's response handling."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_response_type_errors",
+    "summary": "Verifies that returning invalid types or malformed tuples from a view function raises appropriate TypeErrors.",
+    "steps": [
+      "Arrange: Set app.testing = True.",
+      "Arrange: Define routes returning invalid types: None, tuple with 1 item, tuple with 4 items, boolean, invalid WSGI callable.",
+      "Arrange: Get the test client.",
+      "Act: Make GET requests to each error route.",
+      "Assert: Confirm that a TypeError is raised in each case with a descriptive message."
+    ],
+    "notes": []
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_make_response",
+    "summary": "Verifies that the make_response helper function correctly creates Response objects from various inputs.",
+    "steps": [
+      "Arrange: Push a request context.",
+      "Act: Call flask.make_response() with no arguments.",
+      "Assert: Check default status, data, and mimetype.",
+      "Act: Call flask.make_response('Awesome').",
+      "Assert: Check status, data, and mimetype.",
+      "Act: Call flask.make_response('W00t', 404).",
+      "Assert: Check status, data, and mimetype.",
+      "Act: Call flask.make_response with a generator.",
+      "Assert: Check status, data, and mimetype."
+    ],
+    "notes": [
+      "Uses 'app' and 'req_ctx' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_make_response_with_response_instance",
+    "summary": "Verifies that make_response correctly handles being passed an existing Response object, potentially modifying its status or headers.",
+    "steps": [
+      "Arrange: Push a request context.",
+      "Act: Call flask.make_response with jsonify result and status code.",
+      "Assert: Check status, data, and mimetype.",
+      "Act: Call flask.make_response with an empty Response and status code.",
+      "Assert: Check status, data, and mimetype.",
+      "Act: Call flask.make_response with a Response, status code, and extra headers.",
+      "Assert: Check status, headers (original and added), and mimetype."
+    ],
+    "notes": [
+      "Uses 'app' and 'req_ctx' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_jsonify_no_prettyprint[True]",
+    "summary": "Verifies that jsonify output compactness is controlled by app.json.compact (case: compact=True).",
+    "steps": [
+      "Arrange: Set app.json.compact = True.",
+      "Act: Create a JSON response using app.json.response.",
+      "Assert: Confirm the response data does *not* contain added spaces or newlines."
+    ],
+    "notes": [
+      "Uses the 'app' fixture.",
+      "Parameterized test."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_jsonify_no_prettyprint[False]",
+    "summary": "Verifies that jsonify output compactness is controlled by app.json.compact (case: compact=False).",
+    "steps": [
+      "Arrange: Set app.json.compact = False.",
+      "Act: Create a JSON response using app.json.response.",
+      "Assert: Confirm the response data *does* contain added spaces or newlines (pretty-printed)."
+    ],
+    "notes": [
+      "Uses the 'app' fixture.",
+      "Parameterized test."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_jsonify_mimetype",
+    "summary": "Verifies that the mimetype for responses created by jsonify can be customized via app.json.mimetype.",
+    "steps": [
+      "Arrange: Push a request context.",
+      "Arrange: Set app.json.mimetype to a custom value.",
+      "Act: Create a response using flask.jsonify.",
+      "Assert: Confirm the response mimetype matches the custom value."
+    ],
+    "notes": [
+      "Uses 'app' and 'req_ctx' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_json_dump_dataclass",
+    "summary": "Verifies that dataclass instances can be serialized to JSON using the default JSON provider.",
+    "steps": [
+      "Arrange: Push a request context.",
+      "Arrange: Create a simple dataclass 'Data'.",
+      "Act: Call app.json.dumps with an instance of 'Data'.",
+      "Act: Call app.json.loads on the result.",
+      "Assert: Confirm the deserialized dictionary matches the dataclass fields."
+    ],
+    "notes": [
+      "Uses 'app' and 'req_ctx' fixtures.",
+      "Requires Python >= 3.7 (dataclasses)."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_jsonify_args_and_kwargs_check",
+    "summary": "Verifies that calling jsonify with both positional and keyword arguments raises a TypeError.",
+    "steps": [
+      "Arrange: Push a request context.",
+      "Act: Call flask.jsonify with both args and kwargs.",
+      "Assert: Confirm a TypeError is raised with a message indicating only one type is allowed."
+    ],
+    "notes": [
+      "Uses 'app' and 'req_ctx' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_url_generation",
+    "summary": "Verifies basic URL generation using url_for, including variable parts and the _external flag.",
+    "steps": [
+      "Arrange: Define a route '/hello/<name>' named 'hello'.",
+      "Arrange: Push a request context.",
+      "Act: Call flask.url_for('hello', name='test x').",
+      "Assert: Confirm the result is '/hello/test%20x'.",
+      "Act: Call flask.url_for('hello', name='test x', _external=True).",
+      "Assert: Confirm the result is 'http://localhost/hello/test%20x'."
+    ],
+    "notes": [
+      "Uses 'app' and 'req_ctx' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_build_error_handler",
+    "summary": "Verifies that custom URL build error handlers can catch BuildErrors and return alternative URLs.",
+    "steps": [
+      "Arrange: Push a test request context.",
+      "Assert: Confirm calling url_for for a non-existent endpoint ('spam') raises BuildError.",
+      "Arrange: Define a custom URL build error handler function.",
+      "Arrange: Register the handler with app.url_build_error_handlers.",
+      "Act: Call url_for for the non-existent endpoint ('spam') again.",
+      "Assert: Confirm the return value is the one provided by the custom handler ('/test_handler/')."
+    ],
+    "notes": [
+      "Uses the 'app' fixture.",
+      "Tests error handling during URL building."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_build_error_handler_reraise",
+    "summary": "Verifies that if a custom URL build error handler re-raises the BuildError, it propagates correctly.",
+    "steps": [
+      "Arrange: Define a custom URL build error handler that re-raises the received error.",
+      "Arrange: Register the handler.",
+      "Arrange: Push a test request context.",
+      "Act: Call url_for for a non-existent endpoint.",
+      "Assert: Confirm that BuildError is raised."
+    ],
+    "notes": [
+      "Uses the 'app' fixture."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_url_for_passes_special_values_to_build_error_handler",
+    "summary": "Verifies that special url_for arguments (_external, _anchor, etc.) are passed to the build error handler.",
+    "steps": [
+      "Arrange: Define a custom URL build error handler that asserts the content of the 'values' dictionary.",
+      "Arrange: Register the handler.",
+      "Arrange: Push a test request context.",
+      "Act: Call url_for for a route ('/').",
+      "Assert: Implicitly asserts within the handler that 'values' contains the special keys with default values."
+    ],
+    "notes": [
+      "Uses the 'app' fixture."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_static_files",
+    "summary": "Verifies that static files are served correctly and url_for generates correct static URLs.",
+    "steps": [
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/static/index.html'.",
+      "Assert: Confirm the status code is 200 and the response data matches the file content.",
+      "Arrange: Push a test request context.",
+      "Act: Call flask.url_for('static', filename='index.html').",
+      "Assert: Confirm the generated URL is '/static/index.html'."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures.",
+      "Assumes a 'static/index.html' file exists."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_static_url_path",
+    "summary": "Verifies that configuring a custom static_url_path works for serving and URL generation.",
+    "steps": [
+      "Arrange: Create a Flask app with static_url_path='/foo'.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/foo/index.html'.",
+      "Assert: Confirm the status code is 200.",
+      "Arrange: Push a test request context.",
+      "Act: Call flask.url_for('static', filename='index.html').",
+      "Assert: Confirm the generated URL is '/foo/index.html'."
+    ],
+    "notes": []
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_static_url_path_with_ending_slash",
+    "summary": "Verifies that configuring static_url_path with a trailing slash works correctly.",
+    "steps": [
+      "Arrange: Create a Flask app with static_url_path='/foo/'.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/foo/index.html'.",
+      "Assert: Confirm the status code is 200.",
+      "Arrange: Push a test request context.",
+      "Act: Call flask.url_for('static', filename='index.html').",
+      "Assert: Confirm the generated URL is '/foo/index.html'."
+    ],
+    "notes": []
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_static_url_empty_path",
+    "summary": "Verifies that setting static_folder and static_url_path to empty strings serves static files from the root.",
+    "steps": [
+      "Arrange: Create a Flask app with static_folder='' and static_url_path=''.",
+      "Act: Make a GET request to '/static/index.html'.",
+      "Assert: Confirm status code is 200."
+    ],
+    "notes": [
+      "Uses 'app' fixture (though app is recreated).",
+      "This seems counter-intuitive; static files are usually under /static/."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_static_url_empty_path_default",
+    "summary": "Verifies that setting static_folder to an empty string serves static files from '/static/' by default.",
+    "steps": [
+      "Arrange: Create a Flask app with static_folder=''.",
+      "Act: Make a GET request to '/static/index.html'.",
+      "Assert: Confirm status code is 200."
+    ],
+    "notes": [
+      "Uses 'app' fixture (though app is recreated)."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_static_folder_with_pathlib_path",
+    "summary": "Verifies that static_folder accepts pathlib.Path objects.",
+    "steps": [
+      "Arrange: Create a Flask app with static_folder=Path('static').",
+      "Act: Make a GET request to '/static/index.html'.",
+      "Assert: Confirm status code is 200."
+    ],
+    "notes": [
+      "Uses 'app' fixture (though app is recreated).",
+      "Requires Python >= 3.4 (pathlib)."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_static_folder_with_ending_slash",
+    "summary": "Verifies that static routing does not conflict with catch-all routes when static_folder has a trailing slash.",
+    "steps": [
+      "Arrange: Create a Flask app with static_folder='static/'.",
+      "Arrange: Define a catch-all route '/<path:path>'.",
+      "Act: Make a GET request to '/catch/all'.",
+      "Assert: Confirm the catch-all route handles the request and returns the path."
+    ],
+    "notes": [
+      "Uses 'app' fixture (though app is recreated)."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_static_route_with_host_matching",
+    "summary": "Verifies static file serving and URL generation when host_matching is enabled.",
+    "steps": [
+      "Arrange: Create a Flask app with host_matching=True and static_host='example.com'.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to the static file URL using the specified host.",
+      "Assert: Confirm status code is 200.",
+      "Arrange: Push a test request context.",
+      "Act: Call url_for for the static file with _external=True.",
+      "Assert: Confirm the generated URL uses the correct host.",
+      "Assert: Confirm creating an app with static_host but not host_matching raises AssertionError.",
+      "Assert: Confirm creating an app with host_matching and static_folder but not static_host raises AssertionError.",
+      "Assert: Confirm creating an app with host_matching, no static_host, but static_folder=None does *not* raise AssertionError."
+    ],
+    "notes": []
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_request_locals",
+    "summary": "Verifies the initial state and representation of the 'g' context local.",
+    "steps": [
+      "Act: Get the repr of flask.g.",
+      "Assert: Confirm it's '<LocalProxy unbound>'.",
+      "Act: Check the truthiness of flask.g.",
+      "Assert: Confirm it's False."
+    ],
+    "notes": []
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_server_name_matching[False-False-default-default-default]",
+    "summary": "Verifies host/subdomain matching behavior when both are disabled.",
+    "steps": [
+      "Arrange: Create Flask app with subdomain_matching=False, host_matching=False.",
+      "Arrange: Set SERVER_NAME = 'example.test'.",
+      "Arrange: Define routes '/' with subdomain/host variable 'name' (defaults to 'default').",
+      "Arrange: Get the test client.",
+      "Act: Make GET request to 'http://example.test'.",
+      "Assert: Confirm response text is 'default'.",
+      "Act: Make GET request to 'http://abc.example.test'.",
+      "Assert: Confirm response text is 'default'.",
+      "Act: Make GET request to 'http://xyz.other.test'.",
+      "Assert: Confirm response text is 'default'."
+    ],
+    "notes": [
+      "Parameterized test for different matching configurations."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_server_name_matching[True-False-default-abc-default]",
+    "summary": "Verifies host/subdomain matching behavior when subdomain_matching=True, host_matching=False.",
+    "steps": [
+      "Arrange: Create Flask app with subdomain_matching=True, host_matching=False.",
+      "Arrange: Set SERVER_NAME = 'example.test'.",
+      "Arrange: Define routes '/' with subdomain/host variable 'name' (defaults to 'default').",
+      "Arrange: Get the test client.",
+      "Act: Make GET request to 'http://example.test'.",
+      "Assert: Confirm response text is 'default'.",
+      "Act: Make GET request to 'http://abc.example.test'.",
+      "Assert: Confirm response text is 'abc'.",
+      "Act: Make GET request to 'http://xyz.other.test'.",
+      "Assert: Confirm response text is '<invalid>' (indicates a 404 or routing failure expected due to subdomain mismatch)."
+    ],
+    "notes": [
+      "Parameterized test for different matching configurations."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_server_name_matching[False-True-default-abc-default]",
+    "summary": "Verifies host/subdomain matching behavior when subdomain_matching=False, host_matching=True.",
+    "steps": [
+      "Arrange: Create Flask app with subdomain_matching=False, host_matching=True, static_host='example.test'.",
+      "Arrange: Set SERVER_NAME = 'example.test'.",
+      "Arrange: Define routes '/' with subdomain/host variable 'name' (defaults to 'default').",
+      "Arrange: Get the test client.",
+      "Act: Make GET request to 'http://example.test'.",
+      "Assert: Confirm response text is 'default'.",
+      "Act: Make GET request to 'http://abc.example.test'.",
+      "Assert: Confirm response text is 'abc'.",
+      "Act: Make GET request to 'http://xyz.other.test'.",
+      "Assert: Confirm response text is 'default'."
+    ],
+    "notes": [
+      "Parameterized test for different matching configurations."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_server_name_subdomain",
+    "summary": "Tests subdomain routing with different SERVER_NAME configurations and request hosts.",
+    "steps": [
+      "Arrange: Create Flask app with subdomain_matching=True.",
+      "Arrange: Get test client.",
+      "Arrange: Define routes for '/' (default) and '/' with subdomain='foo'.",
+      "Arrange: Set SERVER_NAME = 'dev.local:5000'.",
+      "Act: Make requests to '/' with hosts 'localhost.localdomain:5000', 'dev.local:5000', 'https://dev.local:5000'.",
+      "Assert: Confirm responses are 'default'.",
+      "Arrange: Set SERVER_NAME = 'dev.local:443'.",
+      "Act: Make request to '/' with host 'https://dev.local'.",
+      "Assert: Confirm response is 'default' (or 404 depending on Werkzeug version).",
+      "Arrange: Set SERVER_NAME = 'dev.local'.",
+      "Act: Make request to '/' with host 'https://dev.local'.",
+      "Assert: Confirm response is 'default'.",
+      "Act: Make request to '/' with host 'http://foo.localhost' (expect 404).",
+      "Act: Make request to '/' with host 'http://foo.dev.local'.",
+      "Assert: Confirm response is 'subdomain'."
+    ],
+    "notes": [
+      "Uses the 'app' fixture."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_subdomain_matching_other_name[False]",
+    "summary": "Verifies that with subdomain_matching=False, requests to any host/subdomain matching SERVER_NAME's port resolve.",
+    "steps": [
+      "Arrange: Create Flask app with subdomain_matching=False.",
+      "Arrange: Set SERVER_NAME = 'localhost.localdomain:3000'.",
+      "Arrange: Get test client.",
+      "Arrange: Define route '/'.",
+      "Act: Make request to '/' with host 'http://127.0.0.1:3000/'.",
+      "Assert: Confirm status code is 204 (success).",
+      "Act: Make request to '/' with host 'http://www.localhost.localdomain:3000/'.",
+      "Assert: Confirm status code is 204 (success)."
+    ],
+    "notes": [
+      "Uses the 'app' fixture.",
+      "Parameterized test."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_subdomain_matching_other_name[True]",
+    "summary": "Verifies that with subdomain_matching=True, requests to hosts/subdomains not matching SERVER_NAME result in 404.",
+    "steps": [
+      "Arrange: Create Flask app with subdomain_matching=True.",
+      "Arrange: Set SERVER_NAME = 'localhost.localdomain:3000'.",
+      "Arrange: Get test client.",
+      "Arrange: Define route '/'.",
+      "Act: Make request to '/' with host 'http://127.0.0.1:3000/'.",
+      "Assert: Confirm status code is 404.",
+      "Act: Make request to '/' with host 'http://www.localhost.localdomain:3000/'.",
+      "Assert: Confirm status code is 404."
+    ],
+    "notes": [
+      "Uses the 'app' fixture.",
+      "Parameterized test."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_multi_route_rules",
+    "summary": "Verifies that multiple @app.route decorators can be applied to a single view function with default arguments.",
+    "steps": [
+      "Arrange: Define a view function 'index' decorated with both @app.route('/') and @app.route('/<test>/').",
+      "Arrange: The function takes an optional 'test' argument defaulting to 'a'.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/'.",
+      "Assert: Confirm response data is b'a'.",
+      "Act: Make a GET request to '/b/'.",
+      "Assert: Confirm response data is b'b'."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_multi_route_class_views",
+    "summary": "Verifies that multiple URL rules mapping to the same method of a class-based view work correctly.",
+    "steps": [
+      "Arrange: Define a class-based view 'View' with an 'index' method.",
+      "Arrange: In the class __init__, use app.add_url_rule to add rules '/' and '/<test>/' both pointing to self.index.",
+      "Arrange: Instantiate the view.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/'.",
+      "Assert: Confirm response data is b'a'.",
+      "Act: Make a GET request to '/b/'.",
+      "Assert: Confirm response data is b'b'."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_run_defaults",
+    "summary": "Verifies that calling app.run() without arguments calls werkzeug.serving.run_simple.",
+    "steps": [
+      "Arrange: Define a mock function for werkzeug.serving.run_simple.",
+      "Arrange: Patch werkzeug.serving.run_simple with the mock using monkeypatch.",
+      "Act: Call app.run().",
+      "Assert: Confirm the mock function was called (by checking the value it set)."
+    ],
+    "notes": [
+      "Uses 'app' and 'monkeypatch' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_run_server_port",
+    "summary": "Verifies that app.run() passes host, port, and debug correctly to werkzeug.serving.run_simple.",
+    "steps": [
+      "Arrange: Define a mock function for werkzeug.serving.run_simple that records hostname and port.",
+      "Arrange: Patch werkzeug.serving.run_simple with the mock.",
+      "Act: Call app.run with specific host, port, and debug=True.",
+      "Assert: Confirm the mock function received the correct hostname and port."
+    ],
+    "notes": [
+      "Uses 'app' and 'monkeypatch' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_run_from_config[None-None-pocoo.org:8080-pocoo.org-8080]",
+    "summary": "Verifies that app.run() correctly determines host and port from SERVER_NAME config when host/port arguments are None.",
+    "steps": [
+      "Arrange: Define mock run_simple function to assert host and port.",
+      "Arrange: Patch run_simple.",
+      "Arrange: Set app.config['SERVER_NAME'] = 'pocoo.org:8080'.",
+      "Act: Call app.run(host=None, port=None).",
+      "Assert: (Implicit in mock) Confirm run_simple was called with host='pocoo.org', port=8080."
+    ],
+    "notes": [
+      "Uses 'app' and 'monkeypatch' fixtures.",
+      "Parameterized test for run configuration precedence."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_run_from_config[localhost-None-pocoo.org:8080-localhost-8080]",
+    "summary": "Verifies that app.run() uses the provided host argument over SERVER_NAME config, but port from config.",
+    "steps": [
+      "Arrange: Define mock run_simple function to assert host and port.",
+      "Arrange: Patch run_simple.",
+      "Arrange: Set app.config['SERVER_NAME'] = 'pocoo.org:8080'.",
+      "Act: Call app.run(host='localhost', port=None).",
+      "Assert: (Implicit in mock) Confirm run_simple was called with host='localhost', port=8080."
+    ],
+    "notes": [
+      "Uses 'app' and 'monkeypatch' fixtures.",
+      "Parameterized test for run configuration precedence."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_run_from_config[None-80-pocoo.org:8080-pocoo.org-80]",
+    "summary": "Verifies that app.run() uses the provided port argument over SERVER_NAME config, but host from config.",
+    "steps": [
+      "Arrange: Define mock run_simple function to assert host and port.",
+      "Arrange: Patch run_simple.",
+      "Arrange: Set app.config['SERVER_NAME'] = 'pocoo.org:8080'.",
+      "Act: Call app.run(host=None, port=80).",
+      "Assert: (Implicit in mock) Confirm run_simple was called with host='pocoo.org', port=80."
+    ],
+    "notes": [
+      "Uses 'app' and 'monkeypatch' fixtures.",
+      "Parameterized test for run configuration precedence."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_run_from_config[localhost-80-pocoo.org:8080-localhost-80]",
+    "summary": "Verifies that app.run() uses provided host and port arguments over SERVER_NAME config.",
+    "steps": [
+      "Arrange: Define mock run_simple function to assert host and port.",
+      "Arrange: Patch run_simple.",
+      "Arrange: Set app.config['SERVER_NAME'] = 'pocoo.org:8080'.",
+      "Act: Call app.run(host='localhost', port=80).",
+      "Assert: (Implicit in mock) Confirm run_simple was called with host='localhost', port=80."
+    ],
+    "notes": [
+      "Uses 'app' and 'monkeypatch' fixtures.",
+      "Parameterized test for run configuration precedence."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_run_from_config[localhost-0-localhost:8080-localhost-0]",
+    "summary": "Verifies that app.run() allows port 0 when SERVER_NAME specifies a different port.",
+    "steps": [
+      "Arrange: Define mock run_simple function to assert host and port.",
+      "Arrange: Patch run_simple.",
+      "Arrange: Set app.config['SERVER_NAME'] = 'localhost:8080'.",
+      "Act: Call app.run(host='localhost', port=0).",
+      "Assert: (Implicit in mock) Confirm run_simple was called with host='localhost', port=0."
+    ],
+    "notes": [
+      "Uses 'app' and 'monkeypatch' fixtures.",
+      "Parameterized test for run configuration precedence."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_run_from_config[None-None-localhost:8080-localhost-8080]",
+    "summary": "Verifies that app.run() correctly determines host and port from SERVER_NAME config when host/port arguments are None (localhost case).",
+    "steps": [
+      "Arrange: Define mock run_simple function to assert host and port.",
+      "Arrange: Patch run_simple.",
+      "Arrange: Set app.config['SERVER_NAME'] = 'localhost:8080'.",
+      "Act: Call app.run(host=None, port=None).",
+      "Assert: (Implicit in mock) Confirm run_simple was called with host='localhost', port=8080."
+    ],
+    "notes": [
+      "Uses 'app' and 'monkeypatch' fixtures.",
+      "Parameterized test for run configuration precedence."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_run_from_config[None-None-localhost:0-localhost-0]",
+    "summary": "Verifies that app.run() correctly determines host and port 0 from SERVER_NAME config when host/port arguments are None.",
+    "steps": [
+      "Arrange: Define mock run_simple function to assert host and port.",
+      "Arrange: Patch run_simple.",
+      "Arrange: Set app.config['SERVER_NAME'] = 'localhost:0'.",
+      "Act: Call app.run(host=None, port=None).",
+      "Assert: (Implicit in mock) Confirm run_simple was called with host='localhost', port=0."
+    ],
+    "notes": [
+      "Uses 'app' and 'monkeypatch' fixtures.",
+      "Parameterized test for run configuration precedence."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_max_cookie_size",
+    "summary": "Verifies that the MAX_COOKIE_SIZE config controls the warning emitted for large cookies.",
+    "steps": [
+      "Arrange: Set app.config['MAX_COOKIE_SIZE'] = 100.",
+      "Assert: Confirm flask.Response().max_cookie_size outside context uses Werkzeug default.",
+      "Arrange: Push an app context.",
+      "Assert: Confirm flask.Response().max_cookie_size inside context uses the app config value (100).",
+      "Arrange: Define a route '/' that sets a large cookie.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/'.",
+      "Assert: Confirm a warning about cookie size was recorded.",
+      "Arrange: Set app.config['MAX_COOKIE_SIZE'] = 0 (disable warning).",
+      "Act: Make a GET request to '/'.",
+      "Assert: Confirm no warning was recorded."
+    ],
+    "notes": [
+      "Uses 'app', 'client', and 'recwarn' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_basic.py",
+    "test_name": "test_app_freed_on_zero_refcount",
+    "summary": "Verifies that a Flask app instance does not create reference cycles preventing garbage collection.",
+    "steps": [
+      "Arrange: Disable Python's garbage collector.",
+      "Act: Create a Flask app instance.",
+      "Act: Trigger the static view function property to ensure it's created.",
+      "Act: Create a weak reference to the app.",
+      "Assert: Confirm the weak reference is not None.",
+      "Act: Delete the strong reference to the app.",
+      "Assert: Confirm the weak reference is now None (app was collected).",
+      "Arrange: Re-enable Python's garbage collector."
+    ],
+    "notes": [
+      "Requires CPython garbage collection behavior.",
+      "Tests fix for #3761."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_blueprint_specific_error_handling",
+    "summary": "Verifies that blueprint-specific error handlers take precedence over app-level handlers for requests handled by that blueprint.",
+    "steps": [
+      "Arrange: Create three blueprints: frontend, backend, sideend.",
+      "Arrange: Define a 403 error handler for frontend and backend.",
+      "Arrange: Define routes in frontend and backend that abort(403).",
+      "Arrange: Define a route in sideend that aborts(403) (it has no handler).",
+      "Arrange: Register all blueprints on the app.",
+      "Arrange: Define an app-level 403 error handler.",
+      "Arrange: Get the test client.",
+      "Act: Make GET requests to the error routes in frontend, backend, and sideend.",
+      "Assert: Confirm frontend request uses frontend handler.",
+      "Assert: Confirm backend request uses backend handler.",
+      "Assert: Confirm sideend request uses the app handler."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_blueprint_specific_user_error_handling",
+    "summary": "Verifies that blueprint-specific error handlers for custom exceptions work correctly, using both decorator and direct registration.",
+    "steps": [
+      "Arrange: Define two custom exception classes.",
+      "Arrange: Create a blueprint.",
+      "Arrange: Define an error handler for the first exception using the decorator.",
+      "Arrange: Define an error handler function for the second exception.",
+      "Arrange: Register the second handler using blueprint.register_error_handler.",
+      "Arrange: Define routes within the blueprint that raise each exception.",
+      "Arrange: Register the blueprint on the app.",
+      "Arrange: Get the test client.",
+      "Act: Make GET requests to both error routes.",
+      "Assert: Confirm the responses match the data returned by the respective error handlers."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_blueprint_app_error_handling",
+    "summary": "Verifies that error handlers registered with @blueprint.app_errorhandler handle errors application-wide.",
+    "steps": [
+      "Arrange: Create a blueprint 'errors'.",
+      "Arrange: Define an error handler for 403 using @errors.app_errorhandler.",
+      "Arrange: Define an app-level route that aborts(403).",
+      "Arrange: Create another blueprint 'forbidden_bp' with a route that aborts(403).",
+      "Arrange: Register both blueprints on the app.",
+      "Arrange: Get the test client.",
+      "Act: Make GET requests to the app-level and blueprint-level error routes.",
+      "Assert: Confirm both requests are handled by the @errors.app_errorhandler."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_blueprint_prefix_slash[/--/]",
+    "summary": "Verifies URL rule generation with different combinations of slashes in blueprint url_prefix and route rule.",
+    "steps": [
+      "Arrange: Create a blueprint with url_prefix='/'.",
+      "Arrange: Define a route with rule=''.",
+      "Arrange: Register the blueprint.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/'.",
+      "Assert: Confirm the status code is 204 (success)."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures.",
+      "Parameterized test."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_blueprint_prefix_slash[//-//]",
+    "summary": "Verifies URL rule generation with different combinations of slashes in blueprint url_prefix and route rule.",
+    "steps": [
+      "Arrange: Create a blueprint with url_prefix='/'.",
+      "Arrange: Define a route with rule='/'.",
+      "Arrange: Register the blueprint.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/'.",
+      "Assert: Confirm the status code is 204 (success)."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures.",
+      "Parameterized test."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_blueprint_prefix_slash[/foo--/foo]",
+    "summary": "Verifies URL rule generation with different combinations of slashes in blueprint url_prefix and route rule.",
+    "steps": [
+      "Arrange: Create a blueprint with url_prefix='/foo'.",
+      "Arrange: Define a route with rule=''.",
+      "Arrange: Register the blueprint.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/foo'.",
+      "Assert: Confirm the status code is 204 (success)."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures.",
+      "Parameterized test."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_blueprint_prefix_slash[/foo/--/foo/]",
+    "summary": "Verifies URL rule generation with different combinations of slashes in blueprint url_prefix and route rule.",
+    "steps": [
+      "Arrange: Create a blueprint with url_prefix='/foo/'.",
+      "Arrange: Define a route with rule=''.",
+      "Arrange: Register the blueprint.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/foo/'.",
+      "Assert: Confirm the status code is 204 (success)."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures.",
+      "Parameterized test."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_blueprint_prefix_slash[-/bar-/bar]",
+    "summary": "Verifies URL rule generation with different combinations of slashes in blueprint url_prefix and route rule.",
+    "steps": [
+      "Arrange: Create a blueprint with url_prefix=''.",
+      "Arrange: Define a route with rule='/bar'.",
+      "Arrange: Register the blueprint.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/bar'.",
+      "Assert: Confirm the status code is 204 (success)."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures.",
+      "Parameterized test."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_blueprint_prefix_slash[///bar-/bar]",
+    "summary": "Verifies URL rule generation with different combinations of slashes in blueprint url_prefix and route rule.",
+    "steps": [
+      "Arrange: Create a blueprint with url_prefix='/'.",
+      "Arrange: Define a route with rule='/bar'.",
+      "Arrange: Register the blueprint.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/bar'.",
+      "Assert: Confirm the status code is 204 (success)."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures.",
+      "Parameterized test."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_blueprint_prefix_slash[/foo/-/bar-/foo/bar]",
+    "summary": "Verifies URL rule generation with different combinations of slashes in blueprint url_prefix and route rule.",
+    "steps": [
+      "Arrange: Create a blueprint with url_prefix='/foo/'.",
+      "Arrange: Define a route with rule='/bar'.",
+      "Arrange: Register the blueprint.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/foo/bar'.",
+      "Assert: Confirm the status code is 204 (success)."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures.",
+      "Parameterized test."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_blueprint_prefix_slash[/foo/-bar-/foo/bar]",
+    "summary": "Verifies URL rule generation with different combinations of slashes in blueprint url_prefix and route rule.",
+    "steps": [
+      "Arrange: Create a blueprint with url_prefix='/foo/'.",
+      "Arrange: Define a route with rule='bar'.",
+      "Arrange: Register the blueprint.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/foo/bar'.",
+      "Assert: Confirm the status code is 204 (success)."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures.",
+      "Parameterized test."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_blueprint_prefix_slash[/foo-/bar-/foo/bar]",
+    "summary": "Verifies URL rule generation with different combinations of slashes in blueprint url_prefix and route rule.",
+    "steps": [
+      "Arrange: Create a blueprint with url_prefix='/foo'.",
+      "Arrange: Define a route with rule='/bar'.",
+      "Arrange: Register the blueprint.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/foo/bar'.",
+      "Assert: Confirm the status code is 204 (success)."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures.",
+      "Parameterized test."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_blueprint_prefix_slash[/foo/-/bar-/foo/bar]",
+    "summary": "Verifies URL rule generation with different combinations of slashes in blueprint url_prefix and route rule.",
+    "steps": [
+      "Arrange: Create a blueprint with url_prefix='/foo/'.",
+      "Arrange: Define a route with rule='//bar'.",
+      "Arrange: Register the blueprint.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/foo/bar'.",
+      "Assert: Confirm the status code is 204 (success)."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures.",
+      "Parameterized test."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_blueprint_prefix_slash[/foo//-/bar-/foo/bar]",
+    "summary": "Verifies URL rule generation with different combinations of slashes in blueprint url_prefix and route rule.",
+    "steps": [
+      "Arrange: Create a blueprint with url_prefix='/foo//'.",
+      "Arrange: Define a route with rule='/bar'.",
+      "Arrange: Register the blueprint.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/foo/bar'.",
+      "Assert: Confirm the status code is 204 (success)."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures.",
+      "Parameterized test."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_blueprint_url_defaults",
+    "summary": "Verifies that url_defaults defined at blueprint registration override defaults defined on the blueprint itself.",
+    "steps": [
+      "Arrange: Create a blueprint.",
+      "Arrange: Define routes '/foo' (with defaults={'baz': 42}) and '/bar'.",
+      "Arrange: Register the blueprint twice with different url_prefixes and url_defaults={'bar': value}.",
+      "Arrange: Get the test client.",
+      "Act: Make GET requests to '/1/foo', '/2/foo', '/1/bar', '/2/bar'.",
+      "Assert: Confirm the response data reflects the correct 'bar' and 'baz' values based on the registration defaults and route defaults."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_blueprint_url_processors",
+    "summary": "Verifies that blueprint-specific url_defaults and url_value_preprocessor functions work correctly for URL generation and request processing.",
+    "steps": [
+      "Arrange: Create a blueprint with url_prefix='/<lang_code>'.",
+      "Arrange: Define a url_defaults function to set 'lang_code' from g.lang_code.",
+      "Arrange: Define a url_value_preprocessor to pop 'lang_code' into g.lang_code.",
+      "Arrange: Define routes '/' (index) and '/about' within the blueprint.",
+      "Arrange: The routes return URLs generated using url_for for the *other* route in the same blueprint.",
+      "Arrange: Register the blueprint.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/de/'.",
+      "Assert: Confirm the response data is '/de/about' (URL generated correctly using defaults).",
+      "Act: Make a GET request to '/de/about'.",
+      "Assert: Confirm the response data is '/de/' (URL generated correctly using defaults)."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures.",
+      "Demonstrates interaction between URL processors, 'g', and url_for within a blueprint context."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_templates_and_static",
+    "summary": "Verifies template rendering and static file serving from blueprints, including relative paths and cache control.",
+    "steps": [
+      "Arrange: Import the app from the 'blueprintapp' test application.",
+      "Arrange: Get the test client.",
+      "Act: Make GET requests to the root of the frontend and admin blueprints.",
+      "Assert: Check response data confirms correct template rendering.",
+      "Act: Make GET requests to static files within the admin blueprint, including nested files.",
+      "Assert: Check response data confirms correct static file serving.",
+      "Arrange: Modify SEND_FILE_MAX_AGE_DEFAULT config.",
+      "Act: Make a GET request to a static file.",
+      "Assert: Check Cache-Control header reflects the configured max_age.",
+      "Arrange: Restore original config.",
+      "Arrange: Push a test request context.",
+      "Act: Call url_for for the blueprint's static endpoint.",
+      "Assert: Confirm the generated URL is correct.",
+      "Arrange: Push a test request context.",
+      "Act: Try rendering a non-existent template.",
+      "Assert: Confirm TemplateNotFound is raised.",
+      "Arrange: Create a minimal Flask app.",
+      "Arrange: Push a test request context for the minimal app.",
+      "Act: Render a nested template from the main app's templates folder.",
+      "Assert: Confirm the nested template is rendered correctly (demonstrating template discovery)."
+    ],
+    "notes": [
+      "Uses the 'test_apps' fixture.",
+      "Requires the 'blueprintapp' test application structure."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_default_static_max_age",
+    "summary": "Verifies that a blueprint can override the default static file max age using get_send_file_max_age.",
+    "steps": [
+      "Arrange: Define a Blueprint subclass overriding get_send_file_max_age.",
+      "Arrange: Instantiate the custom blueprint.",
+      "Arrange: Register the blueprint on the app.",
+      "Arrange: Push a test request context.",
+      "Arrange: Set a different SEND_FILE_MAX_AGE_DEFAULT on the app config.",
+      "Act: Call blueprint.send_static_file for a file.",
+      "Assert: Check the Cache-Control header reflects the max_age returned by the blueprint's method, not the app's default."
+    ],
+    "notes": [
+      "Uses the 'app' fixture."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_templates_list",
+    "summary": "Verifies that app.jinja_env.list_templates() correctly lists templates from registered blueprints.",
+    "steps": [
+      "Arrange: Import the app from the 'blueprintapp' test application.",
+      "Act: Call app.jinja_env.list_templates().",
+      "Assert: Confirm the returned list contains the expected template paths from both blueprints."
+    ],
+    "notes": [
+      "Uses the 'test_apps' fixture.",
+      "Requires the 'blueprintapp' test application structure."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_dotted_name_not_allowed",
+    "summary": "Verifies that creating a Blueprint with a dot in its name raises a ValueError.",
+    "steps": [
+      "Arrange: Get the test client (implicitly uses app).",
+      "Act: Attempt to create flask.Blueprint('app.ui', __name__).",
+      "Assert: Confirm ValueError is raised."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_empty_name_not_allowed",
+    "summary": "Verifies that creating a Blueprint with an empty string name raises a ValueError.",
+    "steps": [
+      "Arrange: Get the test client (implicitly uses app).",
+      "Act: Attempt to create flask.Blueprint('', __name__).",
+      "Assert: Confirm ValueError is raised."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_dotted_names_from_app",
+    "summary": "Verifies that url_for correctly generates URLs between app routes and blueprint routes using dotted endpoint names.",
+    "steps": [
+      "Arrange: Create a blueprint 'test'.",
+      "Arrange: Define an app route '/' that returns url_for('test.index').",
+      "Arrange: Define a blueprint route '/test/' named 'index' that returns url_for('app_index').",
+      "Arrange: Register the blueprint.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/'.",
+      "Assert: Confirm the response data is '/test/'."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_empty_url_defaults",
+    "summary": "Verifies that URL defaults set on a blueprint route work correctly.",
+    "steps": [
+      "Arrange: Create a blueprint.",
+      "Arrange: Define routes '/' (with defaults={'page': 1}) and '/page/<int:page>' mapping to the same function.",
+      "Arrange: Register the blueprint.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/'.",
+      "Assert: Confirm response data is b'1'.",
+      "Act: Make a GET request to '/page/2'.",
+      "Assert: Confirm response data is b'2'."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_route_decorator_custom_endpoint",
+    "summary": "Verifies that custom endpoints specified in @bp.route work correctly and are prefixed with the blueprint name.",
+    "steps": [
+      "Arrange: Create a blueprint 'bp'.",
+      "Arrange: Define routes '/foo', '/bar' (endpoint 'bar'), '/bar/123' (endpoint '123'), '/bar/foo' using @bp.route.",
+      "Arrange: Register the blueprint with url_prefix='/py'.",
+      "Arrange: Define an app route '/' named 'index'.",
+      "Arrange: Get the test client.",
+      "Act: Make GET requests to the app route and all blueprint routes.",
+      "Assert: Confirm the response data for each request matches the expected endpoint name (e.g., 'bp.foo', 'bp.bar', 'bp.123')."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_route_decorator_custom_endpoint_with_dots",
+    "summary": "Verifies that attempting to use dots in blueprint endpoint names or view function names raises ValueError.",
+    "steps": [
+      "Arrange: Create a blueprint.",
+      "Act: Attempt to define a route with endpoint='a.b'.",
+      "Assert: Confirm ValueError is raised.",
+      "Act: Attempt to add a URL rule with endpoint='a.b'.",
+      "Assert: Confirm ValueError is raised.",
+      "Arrange: Define a function with __name__ = 'a.b'.",
+      "Act: Attempt to add a URL rule using this function.",
+      "Assert: Confirm ValueError is raised."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_endpoint_decorator",
+    "summary": "Verifies that @bp.endpoint correctly registers a view function for an endpoint defined elsewhere (potentially at the app level).",
+    "steps": [
+      "Arrange: Add an app-level URL rule '/foo' with endpoint 'bar'.",
+      "Arrange: Create a blueprint 'bp'.",
+      "Arrange: Define a view function 'foobar' decorated with @bp.endpoint('bar').",
+      "Arrange: Register the blueprint with url_prefix='/bp_prefix'.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/foo'.",
+      "Assert: Confirm the response data is b'bar' (handled by the app-level endpoint).",
+      "Act: Make a GET request to '/bp_prefix/bar'.",
+      "Assert: Confirm status code is 404 (blueprint endpoint doesn't override app)."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_template_filter",
+    "summary": "Verifies registering an app-wide template filter using the @bp.app_template_filter decorator.",
+    "steps": [
+      "Arrange: Create a blueprint.",
+      "Arrange: Define a filter function 'my_reverse' using @bp.app_template_filter().",
+      "Arrange: Register the blueprint.",
+      "Assert: Confirm the filter name ('my_reverse') exists in app.jinja_env.filters.",
+      "Assert: Confirm the registered filter function is the one defined.",
+      "Assert: Confirm the filter works as expected."
+    ],
+    "notes": [
+      "Uses the 'app' fixture."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_add_template_filter",
+    "summary": "Verifies registering an app-wide template filter using the bp.add_app_template_filter method.",
+    "steps": [
+      "Arrange: Create a blueprint.",
+      "Arrange: Define a filter function 'my_reverse'.",
+      "Arrange: Call bp.add_app_template_filter(my_reverse).",
+      "Arrange: Register the blueprint.",
+      "Assert: Confirm the filter name ('my_reverse') exists in app.jinja_env.filters.",
+      "Assert: Confirm the registered filter function is the one defined.",
+      "Assert: Confirm the filter works as expected."
+    ],
+    "notes": [
+      "Uses the 'app' fixture."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_template_filter_with_name",
+    "summary": "Verifies registering an app-wide template filter with a custom name using the @bp.app_template_filter decorator.",
+    "steps": [
+      "Arrange: Create a blueprint.",
+      "Arrange: Define a filter function 'my_reverse' using @bp.app_template_filter('strrev').",
+      "Arrange: Register the blueprint.",
+      "Assert: Confirm the custom filter name ('strrev') exists in app.jinja_env.filters.",
+      "Assert: Confirm the registered filter function is the one defined.",
+      "Assert: Confirm the filter works as expected using the custom name."
+    ],
+    "notes": [
+      "Uses the 'app' fixture."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_add_template_filter_with_name",
+    "summary": "Verifies registering an app-wide template filter with a custom name using the bp.add_app_template_filter method.",
+    "steps": [
+      "Arrange: Create a blueprint.",
+      "Arrange: Define a filter function 'my_reverse'.",
+      "Arrange: Call bp.add_app_template_filter(my_reverse, 'strrev').",
+      "Arrange: Register the blueprint.",
+      "Assert: Confirm the custom filter name ('strrev') exists in app.jinja_env.filters.",
+      "Assert: Confirm the registered filter function is the one defined.",
+      "Assert: Confirm the filter works as expected using the custom name."
+    ],
+    "notes": [
+      "Uses the 'app' fixture."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_template_filter_with_template",
+    "summary": "Verifies that an app-wide template filter registered via a blueprint decorator works during template rendering.",
+    "steps": [
+      "Arrange: Create a blueprint.",
+      "Arrange: Define and register an app-wide filter using @bp.app_template_filter.",
+      "Arrange: Register the blueprint.",
+      "Arrange: Define an app route '/' that renders a template using the filter.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/'.",
+      "Assert: Confirm the response data shows the filter was correctly applied."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_template_filter_after_route_with_template",
+    "summary": "Verifies that an app-wide template filter registered via a blueprint decorator works even if registered *after* the route using it.",
+    "steps": [
+      "Arrange: Define an app route '/' that renders a template using a filter.",
+      "Arrange: Create a blueprint.",
+      "Arrange: Define and register an app-wide filter using @bp.app_template_filter.",
+      "Arrange: Register the blueprint *after* the route.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/'.",
+      "Assert: Confirm the response data shows the filter was correctly applied."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures.",
+      "Demonstrates that filter registration order relative to route definition doesn't matter."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_add_template_filter_with_template",
+    "summary": "Verifies that an app-wide template filter registered via bp.add_app_template_filter works during template rendering.",
+    "steps": [
+      "Arrange: Create a blueprint.",
+      "Arrange: Define a filter function.",
+      "Arrange: Register the filter using bp.add_app_template_filter.",
+      "Arrange: Register the blueprint.",
+      "Arrange: Define an app route '/' that renders a template using the filter.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/'.",
+      "Assert: Confirm the response data shows the filter was correctly applied."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_template_filter_with_name_and_template",
+    "summary": "Verifies that an app-wide template filter registered via a blueprint decorator with a custom name works during template rendering.",
+    "steps": [
+      "Arrange: Create a blueprint.",
+      "Arrange: Define and register an app-wide filter with a custom name using @bp.app_template_filter.",
+      "Arrange: Register the blueprint.",
+      "Arrange: Define an app route '/' that renders a template using the filter with its custom name.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/'.",
+      "Assert: Confirm the response data shows the filter was correctly applied."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_add_template_filter_with_name_and_template",
+    "summary": "Verifies that an app-wide template filter registered via bp.add_app_template_filter with a custom name works during template rendering.",
+    "steps": [
+      "Arrange: Create a blueprint.",
+      "Arrange: Define a filter function.",
+      "Arrange: Register the filter with a custom name using bp.add_app_template_filter.",
+      "Arrange: Register the blueprint.",
+      "Arrange: Define an app route '/' that renders a template using the filter with its custom name.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/'.",
+      "Assert: Confirm the response data shows the filter was correctly applied."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_template_test",
+    "summary": "Verifies registering an app-wide template test using the @bp.app_template_test decorator.",
+    "steps": [
+      "Arrange: Create a blueprint.",
+      "Arrange: Define a test function 'is_boolean' using @bp.app_template_test().",
+      "Arrange: Register the blueprint.",
+      "Assert: Confirm the test name ('is_boolean') exists in app.jinja_env.tests.",
+      "Assert: Confirm the registered test function is the one defined.",
+      "Assert: Confirm the test works as expected."
+    ],
+    "notes": [
+      "Uses the 'app' fixture."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_add_template_test",
+    "summary": "Verifies registering an app-wide template test using the bp.add_app_template_test method.",
+    "steps": [
+      "Arrange: Create a blueprint.",
+      "Arrange: Define a test function 'is_boolean'.",
+      "Arrange: Call bp.add_app_template_test(is_boolean).",
+      "Arrange: Register the blueprint.",
+      "Assert: Confirm the test name ('is_boolean') exists in app.jinja_env.tests.",
+      "Assert: Confirm the registered test function is the one defined.",
+      "Assert: Confirm the test works as expected."
+    ],
+    "notes": [
+      "Uses the 'app' fixture."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_template_test_with_name",
+    "summary": "Verifies registering an app-wide template test with a custom name using the @bp.app_template_test decorator.",
+    "steps": [
+      "Arrange: Create a blueprint.",
+      "Arrange: Define a test function 'is_boolean' using @bp.app_template_test('boolean').",
+      "Arrange: Register the blueprint.",
+      "Assert: Confirm the custom test name ('boolean') exists in app.jinja_env.tests.",
+      "Assert: Confirm the registered test function is the one defined.",
+      "Assert: Confirm the test works as expected using the custom name."
+    ],
+    "notes": [
+      "Uses the 'app' fixture."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_add_template_test_with_name",
+    "summary": "Verifies registering an app-wide template test with a custom name using the bp.add_app_template_test method.",
+    "steps": [
+      "Arrange: Create a blueprint.",
+      "Arrange: Define a test function 'is_boolean'.",
+      "Arrange: Call bp.add_app_template_test(is_boolean, 'boolean').",
+      "Arrange: Register the blueprint.",
+      "Assert: Confirm the custom test name ('boolean') exists in app.jinja_env.tests.",
+      "Assert: Confirm the registered test function is the one defined.",
+      "Assert: Confirm the test works as expected using the custom name."
+    ],
+    "notes": [
+      "Uses the 'app' fixture."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_template_test_with_template",
+    "summary": "Verifies that an app-wide template test registered via a blueprint decorator works during template rendering.",
+    "steps": [
+      "Arrange: Create a blueprint.",
+      "Arrange: Define and register an app-wide test using @bp.app_template_test.",
+      "Arrange: Register the blueprint.",
+      "Arrange: Define an app route '/' that renders a template using the test.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/'.",
+      "Assert: Confirm the response data indicates the test passed."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_template_test_after_route_with_template",
+    "summary": "Verifies that an app-wide template test registered via a blueprint decorator works even if registered *after* the route using it.",
+    "steps": [
+      "Arrange: Define an app route '/' that renders a template using a test.",
+      "Arrange: Create a blueprint.",
+      "Arrange: Define and register an app-wide test using @bp.app_template_test.",
+      "Arrange: Register the blueprint *after* the route.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/'.",
+      "Assert: Confirm the response data indicates the test passed."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_add_template_test_with_template",
+    "summary": "Verifies that an app-wide template test registered via bp.add_app_template_test works during template rendering.",
+    "steps": [
+      "Arrange: Create a blueprint.",
+      "Arrange: Define a test function.",
+      "Arrange: Register the test using bp.add_app_template_test.",
+      "Arrange: Register the blueprint.",
+      "Arrange: Define an app route '/' that renders a template using the test.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/'.",
+      "Assert: Confirm the response data indicates the test passed."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_template_test_with_name_and_template",
+    "summary": "Verifies that an app-wide template test registered via a blueprint decorator with a custom name works during template rendering.",
+    "steps": [
+      "Arrange: Create a blueprint.",
+      "Arrange: Define and register an app-wide test with a custom name using @bp.app_template_test.",
+      "Arrange: Register the blueprint.",
+      "Arrange: Define an app route '/' that renders a template using the test with its custom name.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/'.",
+      "Assert: Confirm the response data indicates the test passed."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_add_template_test_with_name_and_template",
+    "summary": "Verifies that an app-wide template test registered via bp.add_app_template_test with a custom name works during template rendering.",
+    "steps": [
+      "Arrange: Create a blueprint.",
+      "Arrange: Define a test function.",
+      "Arrange: Register the test with a custom name using bp.add_app_template_test.",
+      "Arrange: Register the blueprint.",
+      "Arrange: Define an app route '/' that renders a template using the test with its custom name.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/'.",
+      "Assert: Confirm the response data indicates the test passed."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_context_processing",
+    "summary": "Verifies that both app-level and blueprint-level context processors inject variables correctly.",
+    "steps": [
+      "Arrange: Create a blueprint.",
+      "Arrange: Define an app context processor using @bp.app_context_processor.",
+      "Arrange: Define a blueprint context processor using @bp.context_processor.",
+      "Arrange: Define routes '/bp' (blueprint) and '/' (app) that render a template string checking for variables from both processors.",
+      "Arrange: Register the blueprint.",
+      "Arrange: Get the test client.",
+      "Act: Make GET requests to '/' and '/bp'.",
+      "Assert: Confirm '/' response contains only the app processor variable.",
+      "Assert: Confirm '/bp' response contains variables from both processors."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_template_global",
+    "summary": "Verifies registering an app-wide template global using the @bp.app_template_global decorator and accessing it.",
+    "steps": [
+      "Arrange: Create a blueprint.",
+      "Arrange: Define a global function 'get_answer' using @bp.app_template_global().",
+      "Assert: Check that the global is *not* yet in app.jinja_env.globals.",
+      "Arrange: Register the blueprint.",
+      "Assert: Check that the global name ('get_answer') exists in app.jinja_env.globals.",
+      "Assert: Check that the registered global is the defined function.",
+      "Assert: Check that calling the global function directly returns the expected value (42).",
+      "Arrange: Push an app context.",
+      "Act: Render a template string calling the global function.",
+      "Assert: Confirm the rendered string is '42'."
+    ],
+    "notes": [
+      "Uses the 'app' fixture."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_request_processing",
+    "summary": "Verifies the execution order and functionality of blueprint-specific before_request, after_request, and teardown_request handlers.",
+    "steps": [
+      "Arrange: Create a blueprint.",
+      "Arrange: Define handlers for before_request, after_request, and teardown_request, each appending to a list.",
+      "Arrange: Define a route '/bp' within the blueprint.",
+      "Arrange: Register the blueprint.",
+      "Arrange: Get the test client.",
+      "Assert: Confirm the event list is initially empty.",
+      "Act: Make a GET request to '/bp'.",
+      "Assert: Confirm the response data includes modification from the after_request handler.",
+      "Assert: Confirm the event list matches the expected order ['before', 'after', 'teardown']."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_app_request_processing",
+    "summary": "Verifies the execution order and functionality of app-wide request processors registered via a blueprint (@bp.before_app_request, etc.).",
+    "steps": [
+      "Arrange: Create a blueprint.",
+      "Arrange: Define handlers for before_app_request, after_app_request, and teardown_app_request, each appending to a list.",
+      "Arrange: Register the blueprint.",
+      "Arrange: Define an app route '/'.",
+      "Arrange: Get the test client.",
+      "Assert: Confirm the event list is initially empty.",
+      "Act: Make a GET request to '/'.",
+      "Assert: Confirm the response data includes modification from after_app_request.",
+      "Assert: Confirm the event list matches the expected order ['before', 'after', 'teardown'].",
+      "Act: Make a second GET request to '/'.",
+      "Assert: Confirm the response data again.",
+      "Assert: Confirm the event list now contains the sequence twice."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_app_url_processors",
+    "summary": "Verifies that app-wide URL processors registered via a blueprint (@bp.app_url_defaults, etc.) work correctly.",
+    "steps": [
+      "Arrange: Create a blueprint.",
+      "Arrange: Define an app_url_defaults function to set 'lang_code'.",
+      "Arrange: Define an app_url_value_preprocessor to pop 'lang_code' into 'g'.",
+      "Arrange: Define app-level routes '/<lang_code>/' (index) and '/<lang_code>/about' that generate URLs for each other.",
+      "Arrange: Register the blueprint.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/de/'.",
+      "Assert: Confirm the response data is '/de/about' (URL generated correctly).",
+      "Act: Make a GET request to '/de/about'.",
+      "Assert: Confirm the response data is '/de/' (URL generated correctly)."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_nested_blueprint",
+    "summary": "Verifies routing, error handling, and precedence for nested blueprints.",
+    "steps": [
+      "Arrange: Create parent, child, and grandchild blueprints.",
+      "Arrange: Define a 403 error handler on parent and grandchild.",
+      "Arrange: Define index routes ('/') and error routes ('/no') in each blueprint.",
+      "Arrange: Nest grandchild under child, and child under parent, each with URL prefixes.",
+      "Arrange: Register the parent blueprint on the app.",
+      "Arrange: Get the test client.",
+      "Act: Make GET requests to the index routes of parent, child, and grandchild.",
+      "Assert: Confirm responses match the expected blueprint.",
+      "Act: Make GET requests to the error routes of parent, child, and grandchild.",
+      "Assert: Confirm responses match the error handler of the correct blueprint (parent for child, grandchild for itself)."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_nested_callback_order",
+    "summary": "Verifies the execution order of before_request, teardown_request, and context_processor functions for nested blueprints and the application.",
+    "steps": [
+      "Arrange: Define multiple before/teardown/context handlers for app, parent blueprint, and child blueprint, each appending to a list.",
+      "Arrange: Define a route '/a' in the child blueprint that returns the current list content.",
+      "Arrange: Define a route '/b' in the child blueprint that renders a template using a context variable.",
+      "Arrange: Nest the child blueprint under the parent.",
+      "Arrange: Register the parent blueprint.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/a'.",
+      "Assert: Confirm the response data matches the expected order of before_request handlers.",
+      "Assert: Implicitly confirm the teardown handlers executed in the correct reverse order via assertions within them.",
+      "Act: Make a GET request to '/b'.",
+      "Assert: Confirm the response data matches the value set by the innermost context processor ('child')."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures.",
+      "Demonstrates complex request lifecycle hook ordering with nesting."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_nesting_url_prefixes[/parent-/child-None-None]",
+    "summary": "Verifies that URL prefixes defined during blueprint init and registration are correctly combined for nested blueprints.",
+    "steps": [
+      "Arrange: Create parent blueprint with url_prefix='/parent'.",
+      "Arrange: Create child blueprint with url_prefix='/child'.",
+      "Arrange: Define an index route '/' in the child blueprint.",
+      "Arrange: Register child under parent (no registration prefix).",
+      "Arrange: Register parent under app (no registration prefix).",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/parent/child/'.",
+      "Assert: Confirm status code is 200."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures.",
+      "Parameterized test for various prefix combinations."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_nesting_url_prefixes[/parent-None-None-/child]",
+    "summary": "Verifies that URL prefixes defined during blueprint init and registration are correctly combined for nested blueprints.",
+    "steps": [
+      "Arrange: Create parent blueprint with url_prefix='/parent'.",
+      "Arrange: Create child blueprint with url_prefix=None.",
+      "Arrange: Define an index route '/' in the child blueprint.",
+      "Arrange: Register child under parent with url_prefix='/child'.",
+      "Arrange: Register parent under app (no registration prefix).",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/parent/child/'.",
+      "Assert: Confirm status code is 200."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures.",
+      "Parameterized test for various prefix combinations."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_nesting_url_prefixes[None-None-/parent-/child]",
+    "summary": "Verifies that URL prefixes defined during blueprint init and registration are correctly combined for nested blueprints.",
+    "steps": [
+      "Arrange: Create parent blueprint with url_prefix=None.",
+      "Arrange: Create child blueprint with url_prefix=None.",
+      "Arrange: Define an index route '/' in the child blueprint.",
+      "Arrange: Register child under parent with url_prefix='/child'.",
+      "Arrange: Register parent under app with url_prefix='/parent'.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/parent/child/'.",
+      "Assert: Confirm status code is 200."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures.",
+      "Parameterized test for various prefix combinations."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_nesting_url_prefixes[/other-/something-/parent-/child]",
+    "summary": "Verifies that URL prefixes defined during blueprint init and registration are correctly combined for nested blueprints.",
+    "steps": [
+      "Arrange: Create parent blueprint with url_prefix='/other'.",
+      "Arrange: Create child blueprint with url_prefix='/something'.",
+      "Arrange: Define an index route '/' in the child blueprint.",
+      "Arrange: Register child under parent with url_prefix='/child'.",
+      "Arrange: Register parent under app with url_prefix='/parent'.",
+      "Arrange: Get the test client.",
+      "Act: Make a GET request to '/parent/child/'.",
+      "Assert: Confirm status code is 200."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures.",
+      "Parameterized test for various prefix combinations."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_nesting_subdomains",
+    "summary": "Verifies that subdomains are correctly applied when blueprints are nested.",
+    "steps": [
+      "Arrange: Enable subdomain_matching on app.",
+      "Arrange: Set SERVER_NAME.",
+      "Arrange: Create parent and child blueprints.",
+      "Arrange: Define route '/child/' in child blueprint.",
+      "Arrange: Register child under parent.",
+      "Arrange: Register parent under app with subdomain='api'.",
+      "Arrange: Get test client.",
+      "Act: Make GET request to '/child/' using base_url='http://api.example.test'.",
+      "Assert: Confirm status code is 200."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_child_and_parent_subdomain",
+    "summary": "Verifies that subdomains defined on both parent and child blueprints are correctly concatenated.",
+    "steps": [
+      "Arrange: Enable subdomain_matching on app.",
+      "Arrange: Set SERVER_NAME.",
+      "Arrange: Create parent blueprint.",
+      "Arrange: Create child blueprint with subdomain='api'.",
+      "Arrange: Define route '/' in child blueprint.",
+      "Arrange: Register child under parent.",
+      "Arrange: Register parent under app with subdomain='parent'.",
+      "Arrange: Get test client.",
+      "Act: Make GET request to '/' using base_url='http://api.parent.example.test'.",
+      "Assert: Confirm status code is 200.",
+      "Act: Make GET request to '/' using base_url='http://parent.example.test'.",
+      "Assert: Confirm status code is 404."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_unique_blueprint_names",
+    "summary": "Verifies that registering blueprints requires unique names, but allows reusing the same blueprint object with different names.",
+    "steps": [
+      "Arrange: Create two blueprints, bp and bp2, with the same initial name 'bp'.",
+      "Arrange: Get the test client.",
+      "Act: Register bp.",
+      "Assert: Confirm this succeeds.",
+      "Act: Attempt to register bp again with the same name.",
+      "Assert: Confirm ValueError is raised.",
+      "Act: Register bp again with name='again'.",
+      "Assert: Confirm this succeeds.",
+      "Act: Attempt to register bp2 (different object, same original name).",
+      "Assert: Confirm ValueError is raised.",
+      "Act: Register bp2 with name='alt'.",
+      "Assert: Confirm this succeeds."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_self_registration",
+    "summary": "Verifies that attempting to register a blueprint on itself raises a ValueError.",
+    "steps": [
+      "Arrange: Create a blueprint 'bp'.",
+      "Arrange: Get the test client.",
+      "Act: Attempt to call bp.register_blueprint(bp).",
+      "Assert: Confirm ValueError is raised."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  },
+  {
+    "file_path": "tests/test_blueprints.py",
+    "test_name": "test_blueprint_renaming",
+    "summary": "Tests registering the same blueprint multiple times with different names and prefixes, including nested registration.",
+    "steps": [
+      "Arrange: Create blueprints 'bp' and 'bp2'.",
+      "Arrange: Define routes and an error handler in 'bp'.",
+      "Arrange: Define a route in 'bp2'.",
+      "Arrange: Register 'bp2' under 'bp' with name='sub'.",
+      "Arrange: Register 'bp' under the app with prefix '/a'.",
+      "Arrange: Register 'bp' again under the app with prefix '/b' and name='alt'.",
+      "Arrange: Get test client.",
+      "Act: Make GET requests to various combinations of prefixes and routes for both bp instances and the nested bp2.",
+      "Assert: Confirm responses match the correctly prefixed endpoint names (e.g., 'bp.index', 'alt.index', 'bp.sub.index2', 'alt.sub.index2').",
+      "Act: Make GET requests to the error routes for both 'bp' instances.",
+      "Assert: Confirm the error handler is invoked correctly for both."
+    ],
+    "notes": [
+      "Uses 'app' and 'client' fixtures."
+    ]
+  }
+]
